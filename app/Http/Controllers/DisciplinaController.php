@@ -15,7 +15,7 @@ class DisciplinaController extends Controller
      */
     public function index()
     {
-        //
+        return view('disciplinas.index', ['disciplinas' => Disciplina::all()]);
     }
 
     /**
@@ -55,7 +55,7 @@ class DisciplinaController extends Controller
      */
     public function show(Disciplina $disciplina)
     {
-        //
+        return view('disciplinas.show', compact('disciplina'));
     }
 
     /**
@@ -66,7 +66,8 @@ class DisciplinaController extends Controller
      */
     public function edit(Disciplina $disciplina)
     {
-        //
+        $professores = Professor::all();
+        return view('disciplinas.edit', compact('disciplina', 'professores'));
     }
 
     /**
@@ -78,7 +79,9 @@ class DisciplinaController extends Controller
      */
     public function update(Request $request, Disciplina $disciplina)
     {
-        //
+        $disciplina->update(request(['nome','sigla', 'carga', 'professor_id']));
+
+        return redirect('/disciplinas');
     }
 
     /**
@@ -89,6 +92,7 @@ class DisciplinaController extends Controller
      */
     public function destroy(Disciplina $disciplina)
     {
-        //
+        $disciplina->delete();
+        return redirect('disciplinas');
     }
 }

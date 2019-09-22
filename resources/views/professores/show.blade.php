@@ -5,7 +5,7 @@
     <h1>{{ $professor->nome }}</h1>
     <p>Matrícula: {{ $professor->matricula }}</p>
     <p>Email: {{ $professor->email }}</p>
-    <p>Matrícula: {{ $professor->data_nasc }}</p>
+    <p>Data de nascimento: {{ $professor->data_nasc }}</p>
     <p>Registrado em {{ $professor->created_at }}</p>
     <p>Ultima alteração realizada em {{ $professor->updated_at }}</p>
 

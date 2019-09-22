@@ -44,7 +44,7 @@ class ProfessorController extends Controller
         ]);
         Professor::create($attributes);
 
-        return redirect('/professores');
+        return redirect('professores');
     }
 
     /**
@@ -56,7 +56,7 @@ class ProfessorController extends Controller
     public function show($id)
     {
         $professor = Professor::findOrFail($id);
-        return view('professores.show', compact('professor'));
+        return view('professores.show', ['professor' => $professor]);
     }
 
     /**
@@ -65,9 +65,10 @@ class ProfessorController extends Controller
      * @param  \App\Professor  $professor
      * @return \Illuminate\Http\Response
      */
-    public function edit(Professor $professor)
+    public function edit($id)
     {
-        //
+        $professor = Professor::findOrFail($id);
+        return view('professores.edit', compact('professor'));
     }
 
     /**
@@ -77,9 +78,17 @@ class ProfessorController extends Controller
      * @param  \App\Professor  $professor
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Professor $professor)
+    public function update(Request $request, $id)
     {
-        //
+        $professor = Professor::findOrFail($id);
+        $attributes = request()->validate([
+            'nome' => ['required'],
+            'matricula' => ['required'],
+            'data_nasc' => ['required'],
+            'email' => ['required']
+        ]);
+        $professor->update($attributes);
+        return redirect('professores');
     }
 
     /**
@@ -88,8 +97,10 @@ class ProfessorController extends Controller
      * @param  \App\Professor  $professor
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Professor $professor)
+    public function destroy($id)
     {
-        //
+        $professor = Professor::findOrFail($id);
+        $professor->delete();
+        return redirect('professores');
     }
 }
