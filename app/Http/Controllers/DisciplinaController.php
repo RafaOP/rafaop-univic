@@ -15,7 +15,7 @@ class DisciplinaController extends Controller
      */
     public function index()
     {
-        return view('disciplinas.index', ['disciplinas' => Disciplina::all()]);
+        return Disciplina::all();
     }
 
     /**
@@ -43,8 +43,6 @@ class DisciplinaController extends Controller
             'professor_id' => []
         ]);
         Disciplina::create($attributes);
-
-        return redirect('/disciplinas');
     }
 
     /**

@@ -16,3 +16,8 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::resource('professores', 'ProfessorController');
+Route::resource('disciplinas', 'DisciplinaController');
+// Route::get('professores', 'ProfessorController@index');
+// Route::post('professores', 'ProfessorController@store');

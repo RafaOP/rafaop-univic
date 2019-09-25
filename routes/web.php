@@ -11,9 +11,11 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::resource('professores', 'ProfessorController');
-Route::resource('disciplinas', 'DisciplinaController');
+Route::get('/{any}', 'SinglePageController@index')->where('any', '.*');
+
+// Route::resource('professores', 'ProfessorController');
+// Route::resource('disciplinas', 'DisciplinaController');
