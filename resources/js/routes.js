@@ -35,8 +35,14 @@ const routes = new VueRouter({
         },
         {
             path: '/disciplinas/create',
-            name: 'disciplinascreate',
+            name: 'disciplinacreate',
             component: DisciplinaForm,
+        },
+        {
+            path: '/disciplinas/edit',
+            name: 'disciplinaedit',
+            component: DisciplinaForm,
+            props: true
         },
         {
             path: '/',

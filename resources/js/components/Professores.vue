@@ -18,7 +18,6 @@
         methods: {
             read() {
                 axios.get('/api/professores').then(({data}) => {
-                    console.log(data);
                     data.forEach(professor => {
                         this.professores.push(professor);
                     });

@@ -105,18 +105,28 @@
             professor: Object
         },
         created() {
-            console.log("Received");
-            this.form.id = this.professor.id;
-            this.form.email = this.professor.email;
-            this.form.nome = this.professor.nome;
-            this.form.matricula = this.professor.matricula;
-            this.form.data_nasc = this.professor.data_nasc;
-            this.ntel = this.professor.telefones.length;
-
-            for (let i = 0; i < this.ntel; ++i) {
-                this.form.etiquetas.push(this.professor.telefones[i].etiqueta);
-                this.form.telefones.push(this.professor.telefones[i].numero);
+            if (this.professor) {
+                this.form.id = this.professor.id;
+                this.form.email = this.professor.email;
+                this.form.nome = this.professor.nome;
+                this.form.matricula = this.professor.matricula;
+                this.form.data_nasc = this.professor.data_nasc;
+                this.ntel = this.professor.telefones.length;
+                for (let i = 0; i < this.ntel; ++i) {
+                    this.form.etiquetas.push(this.professor.telefones[i].etiqueta);
+                    this.form.telefones.push(this.professor.telefones[i].numero);
+                }
             }
+            else {  // Necessário para evitar um TypeError: this.professor is undefined
+                this.form.id = '';
+                this.form.email = '';
+                this.form.nome = '';
+                this.form.matricula = '';
+                this.form.data_nasc = '';
+                this.ntel = 1;
+            }
+
+            // Se o professor não tem nenhum telefone cadastrado
             if (this.ntel == 0) {
                 this.ntel = 1;
                 this.form.etiquetas.push('');
@@ -127,20 +137,34 @@
         methods: {
             onSubmit(evt) {
                 evt.preventDefault();
-                axios.post('/api/professores', {professor: this.form}).then(({data}) => {
-                    console.log('DATA');
-                    console.log(data);
-                }).catch(function (error) {
-                    if (error.response) {
-                        console.log(error.response.data);
-                        console.log(error.response.status);
-                        console.log(error.response.headers);
-                    };
-                });
+                if (!this.professor) {
+                    axios.post('/api/professores', {professor: this.form}).then(({data}) => {
+                        console.log(data);
+                    }).catch(function (error) {
+                        if (error.response) {
+                            console.log(error.response.data);
+                            console.log(error.response.status);
+                            console.log(error.response.headers);
+                        };
+                    });
+                }
+                else {
+                    axios.patch('/api/professores', {professor: this.form}).then(({data}) => {
+                        console.log(data);
+                    }).catch(function (error) {
+                        if (error.response) {
+                            console.log(error.response.data);
+                            console.log(error.response.status);
+                            console.log(error.response.headers);
+                        };
+                    });
+                }
+
+                this.$router.push({path: '/professores'});
             },
             onReset(evt) {
                 evt.preventDefault();
-                // Reset our form values
+                // Limpa os valores do form
                 this.form.email = '';
                 this.form.nome = '';
                 this.form.matricula = '';
@@ -149,7 +173,7 @@
                 this.form.telefones = [],
                 this.ntel = 1;
 
-                // Trick to reset/clear native browser form validation state
+                // Reseta o estado de validação do browser
                 this.show = false;
                 this.$nextTick(() => {
                     this.show = true;

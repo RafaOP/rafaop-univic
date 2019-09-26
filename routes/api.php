@@ -17,7 +17,15 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::resource('professores', 'ProfessorController');
-Route::resource('disciplinas', 'DisciplinaController');
-// Route::get('professores', 'ProfessorController@index');
-// Route::post('professores', 'ProfessorController@store');
+Route::get('professores', 'ProfessorController@index');
+Route::get('disciplinas', 'DisciplinaController@index');
+Route::post('professores', 'ProfessorController@store');
+Route::post('disciplinas', 'DisciplinaController@store');
+Route::delete('professores', 'ProfessorController@destroy');
+Route::delete('disciplinas', 'DisciplinaController@destroy');
+Route::patch('professores', 'ProfessorController@update');
+Route::patch('disciplinas', 'DisciplinaController@update');
+Route::post('professor', 'ProfessorController@getOne');
+Route::post('disciplina', 'DisciplinaController@getOne');
+// Route::get('disciplinas', 'DisciplinaController@getOne');
+// Route::get('professores', 'ProfessorController@getOne');

@@ -1868,15 +1868,77 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
-    return {};
+    return {
+      modal_name: 'modal-name',
+      professor: null
+    };
   },
   name: "Disciplina",
   props: {
     disciplina: Object
   },
-  methods: {}
+  methods: {
+    editDisciplina: function editDisciplina() {
+      this.$router.push({
+        name: 'disciplinaedit',
+        params: {
+          disciplina: this.disciplina
+        }
+      });
+    },
+    deleteDisciplina: function deleteDisciplina() {
+      this.$bvModal.hide(this.modal_name);
+      axios["delete"]('/api/disciplinas', {
+        data: {
+          id: this.disciplina.id
+        }
+      }).then(function (_ref) {
+        var data = _ref.data;
+        console.log(data);
+      })["catch"](function (error) {
+        if (error.response) {
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        }
+
+        ;
+      });
+      this.$router.go();
+    }
+  },
+  created: function created() {
+    var _this = this;
+
+    this.modal_name = '_' + this.disciplina.id;
+
+    if (this.disciplina.professor_id) {
+      axios.post('/api/professor', {
+        id: this.disciplina.professor_id
+      }).then(function (_ref2) {
+        var data = _ref2.data;
+        _this.professor = data;
+      });
+    }
+  }
 });
 
 /***/ }),
@@ -1934,50 +1996,129 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
       form: {
+        id: 0,
         nome: '',
         sigla: '',
-        carga: null
+        carga: null,
+        professor_id: null
       },
+      professores: [],
+      selected: null,
       show: true
     };
+  },
+  props: {
+    disciplina: Object
+  },
+  created: function created() {
+    var _this = this;
+
+    if (this.disciplina) {
+      this.form.id = this.disciplina.id;
+      this.form.nome = this.disciplina.nome;
+      this.form.sigla = this.disciplina.sigla;
+      this.form.carga = this.disciplina.carga;
+      this.form.professor_id = this.disciplina.professor_id;
+    } else {
+      // Necessário para evitar um TypeError: this.professor is undefined
+      this.form.id = '';
+      this.form.nome = '';
+      this.form.sigla = '';
+      this.form.carga = '';
+    }
+
+    axios.get('/api/professores').then(function (_ref) {
+      var data = _ref.data;
+      data.forEach(function (professor) {
+        _this.professores.push(professor);
+
+        if (_this.disciplina) {
+          if (_this.disciplina.professor_id) {
+            if (_this.disciplina.professor_id == professor.id) _this.selected = professor;
+          }
+        }
+      });
+    });
   },
   name: "DisciplinaForm",
   methods: {
     onSubmit: function onSubmit(evt) {
       evt.preventDefault();
-      axios.post('/api/disciplinas', {
-        disciplina: this.form
-      }).then(function (_ref) {
-        var data = _ref.data;
-        console.log('DATA');
-        console.log(data);
-      })["catch"](function (error) {
-        if (error.response) {
-          console.log(error.response.data);
-          console.log(error.response.status);
-          console.log(error.response.headers);
-        }
 
-        ;
+      if (!this.disciplina) {
+        console.log('CREATE');
+        axios.post('/api/disciplinas', {
+          disciplina: this.form
+        }).then(function (_ref2) {
+          var data = _ref2.data;
+          console.log(data);
+        })["catch"](function (error) {
+          if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          }
+
+          ;
+        });
+      } else {
+        console.log('UPDATE');
+        axios.patch('/api/disciplinas', {
+          disciplina: this.form
+        }).then(function (_ref3) {
+          var data = _ref3.data;
+          console.log(data);
+        })["catch"](function (error) {
+          if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          }
+
+          ;
+        });
+      }
+
+      this.$router.push({
+        path: '/disciplinas'
       });
     },
     onReset: function onReset(evt) {
-      var _this = this;
+      var _this2 = this;
 
-      evt.preventDefault(); // Reset our form values
+      evt.preventDefault(); // Limpa os valores do form
 
       this.form.nome = '';
       this.form.sigla = '';
-      this.form.carga = null; // Trick to reset/clear native browser form validation state
+      this.form.carga = null;
+      this.selected = null; // Reseta o estado de validação do browser
 
       this.show = false;
       this.$nextTick(function () {
-        _this.show = true;
+        _this2.show = true;
       });
+    },
+    selectProfessor: function selectProfessor(professor) {
+      this.selected = professor;
+      this.form.professor_id = professor.id;
     }
   }
 });
@@ -2108,9 +2249,27 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
-    return {};
+    return {
+      modal_name: 'modal-name'
+    };
   },
   name: "Professor",
   props: {
@@ -2128,8 +2287,28 @@ __webpack_require__.r(__webpack_exports__);
       });
     },
     deleteProfessor: function deleteProfessor() {
-      console.log('DELETE');
+      this.$bvModal.hide(this.modal_name);
+      axios["delete"]('/api/professores', {
+        data: {
+          id: this.professor.id
+        }
+      }).then(function (_ref) {
+        var data = _ref.data;
+        console.log(data);
+      })["catch"](function (error) {
+        if (error.response) {
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        }
+
+        ;
+      });
+      this.$router.go();
     }
+  },
+  created: function created() {
+    this.modal_name = '_' + this.professor.matricula;
   }
 });
 
@@ -2250,18 +2429,28 @@ __webpack_require__.r(__webpack_exports__);
     professor: Object
   },
   created: function created() {
-    console.log("Received");
-    this.form.id = this.professor.id;
-    this.form.email = this.professor.email;
-    this.form.nome = this.professor.nome;
-    this.form.matricula = this.professor.matricula;
-    this.form.data_nasc = this.professor.data_nasc;
-    this.ntel = this.professor.telefones.length;
+    if (this.professor) {
+      this.form.id = this.professor.id;
+      this.form.email = this.professor.email;
+      this.form.nome = this.professor.nome;
+      this.form.matricula = this.professor.matricula;
+      this.form.data_nasc = this.professor.data_nasc;
+      this.ntel = this.professor.telefones.length;
 
-    for (var i = 0; i < this.ntel; ++i) {
-      this.form.etiquetas.push(this.professor.telefones[i].etiqueta);
-      this.form.telefones.push(this.professor.telefones[i].numero);
-    }
+      for (var i = 0; i < this.ntel; ++i) {
+        this.form.etiquetas.push(this.professor.telefones[i].etiqueta);
+        this.form.telefones.push(this.professor.telefones[i].numero);
+      }
+    } else {
+      // Necessário para evitar um TypeError: this.professor is undefined
+      this.form.id = '';
+      this.form.email = '';
+      this.form.nome = '';
+      this.form.matricula = '';
+      this.form.data_nasc = '';
+      this.ntel = 1;
+    } // Se o professor não tem nenhum telefone cadastrado
+
 
     if (this.ntel == 0) {
       this.ntel = 1;
@@ -2273,32 +2462,53 @@ __webpack_require__.r(__webpack_exports__);
   methods: {
     onSubmit: function onSubmit(evt) {
       evt.preventDefault();
-      axios.post('/api/professores', {
-        professor: this.form
-      }).then(function (_ref) {
-        var data = _ref.data;
-        console.log('DATA');
-        console.log(data);
-      })["catch"](function (error) {
-        if (error.response) {
-          console.log(error.response.data);
-          console.log(error.response.status);
-          console.log(error.response.headers);
-        }
 
-        ;
+      if (!this.professor) {
+        axios.post('/api/professores', {
+          professor: this.form
+        }).then(function (_ref) {
+          var data = _ref.data;
+          console.log(data);
+        })["catch"](function (error) {
+          if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          }
+
+          ;
+        });
+      } else {
+        axios.patch('/api/professores', {
+          professor: this.form
+        }).then(function (_ref2) {
+          var data = _ref2.data;
+          console.log(data);
+        })["catch"](function (error) {
+          if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          }
+
+          ;
+        });
+      }
+
+      this.$router.push({
+        path: '/professores'
       });
     },
     onReset: function onReset(evt) {
       var _this = this;
 
-      evt.preventDefault(); // Reset our form values
+      evt.preventDefault(); // Limpa os valores do form
 
       this.form.email = '';
       this.form.nome = '';
       this.form.matricula = '';
       this.form.data_nasc = '';
-      this.form.etiquetas = [], this.form.telefones = [], this.ntel = 1; // Trick to reset/clear native browser form validation state
+      this.form.etiquetas = [], this.form.telefones = [], this.ntel = 1; // Reseta o estado de validação do browser
 
       this.show = false;
       this.$nextTick(function () {
@@ -2356,7 +2566,6 @@ __webpack_require__.r(__webpack_exports__);
 
       axios.get('/api/professores').then(function (_ref) {
         var data = _ref.data;
-        console.log(data);
         data.forEach(function (professor) {
           _this.professores.push(professor);
         });
@@ -52027,15 +52236,47 @@ var render = function() {
       ),
       _vm._v(" "),
       _c(
+        "b-list-group",
+        { attrs: { flush: "" } },
+        [
+          _vm.disciplina.professor_id
+            ? _c("b-list-group-item", [
+                _vm._v(
+                  "Essa disciplina é lecionada por " +
+                    _vm._s(_vm.professor.nome)
+                )
+              ])
+            : _c("b-list-group-item", [
+                _vm._v("Esse disciplina não tem um professor.")
+              ])
+        ],
+        1
+      ),
+      _vm._v(" "),
+      _c(
         "b-card-body",
         [
-          _c("b-button", { attrs: { href: "create", variant: "primary" } }, [
-            _vm._v("Editar")
-          ]),
+          _c(
+            "b-button",
+            {
+              attrs: { variant: "primary" },
+              on: { click: _vm.editDisciplina }
+            },
+            [_vm._v("Editar")]
+          ),
           _vm._v(" "),
-          _c("b-button", { attrs: { href: "#", variant: "danger" } }, [
-            _vm._v("Excluir")
-          ])
+          _c(
+            "b-button",
+            {
+              attrs: { id: "show-btn", variant: "danger" },
+              on: {
+                click: function($event) {
+                  return _vm.$bvModal.show(_vm.modal_name)
+                }
+              }
+            },
+            [_vm._v("Excluir")]
+          )
         ],
         1
       ),
@@ -52043,13 +52284,84 @@ var render = function() {
       _c(
         "b-card-footer",
         { staticClass: "text-muted", staticStyle: { "font-size": "11px" } },
-        [_vm._v("Criado em " + _vm._s(_vm.disciplina.created_at))]
+        [_vm._v("Criada em " + _vm._s(_vm.disciplina.created_at))]
       ),
       _vm._v(" "),
       _c(
         "b-card-footer",
         { staticClass: "text-muted", staticStyle: { "font-size": "11px" } },
-        [_vm._v("Alterado em " + _vm._s(_vm.disciplina.updated_at))]
+        [_vm._v("Alterada em " + _vm._s(_vm.disciplina.updated_at))]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        [
+          _c(
+            "b-modal",
+            {
+              attrs: { id: _vm.modal_name },
+              scopedSlots: _vm._u([
+                {
+                  key: "modal-title",
+                  fn: function() {
+                    return [
+                      _vm._v(
+                        "\n                " +
+                          _vm._s(_vm.disciplina.nome) +
+                          "\n            "
+                      )
+                    ]
+                  },
+                  proxy: true
+                },
+                {
+                  key: "modal-footer",
+                  fn: function() {
+                    return [
+                      _c(
+                        "b-button",
+                        {
+                          staticClass: "mt-3",
+                          attrs: { block: "", variant: "primary" },
+                          on: {
+                            click: function($event) {
+                              return _vm.$bvModal.hide(_vm.modal_name)
+                            }
+                          }
+                        },
+                        [_vm._v("Cancelar")]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "b-button",
+                        {
+                          staticClass: "mt-3",
+                          attrs: { block: "", variant: "danger" },
+                          on: { click: _vm.deleteDisciplina }
+                        },
+                        [_vm._v("Excluir")]
+                      )
+                    ]
+                  },
+                  proxy: true
+                }
+              ])
+            },
+            [
+              _vm._v(" "),
+              _c("div", { staticClass: "d-block text-center" }, [
+                _c("h3", [
+                  _vm._v(
+                    "Tem certeza que deseja excluir " +
+                      _vm._s(_vm.disciplina.sigla) +
+                      "?"
+                  )
+                ])
+              ])
+            ]
+          )
+        ],
+        1
       )
     ],
     1
@@ -52159,7 +52471,8 @@ var render = function() {
                   _c("b-form-input", {
                     attrs: {
                       id: "carga",
-                      type: "carga",
+                      type: "number",
+                      min: "0",
                       required: "",
                       placeholder: "Carga horária da disciplina"
                     },
@@ -52171,6 +52484,68 @@ var render = function() {
                       expression: "form.carga"
                     }
                   })
+                ],
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "b-form-group",
+                {
+                  attrs: {
+                    id: "input-group-4",
+                    label: "Professor:",
+                    "label-for": "professor"
+                  }
+                },
+                [
+                  _c(
+                    "b-dropdown",
+                    {
+                      attrs: { id: "professor" },
+                      scopedSlots: _vm._u(
+                        [
+                          {
+                            key: "button-content",
+                            fn: function() {
+                              return [
+                                _vm._v(
+                                  "\n                    " +
+                                    _vm._s(
+                                      _vm.selected
+                                        ? _vm.selected.nome
+                                        : "Professor"
+                                    ) +
+                                    "\n                "
+                                )
+                              ]
+                            },
+                            proxy: true
+                          }
+                        ],
+                        null,
+                        false,
+                        2177999859
+                      )
+                    },
+                    [
+                      _vm._v(" "),
+                      _vm._l(_vm.professores, function(professor) {
+                        return _c(
+                          "b-dropdown-item",
+                          {
+                            key: professor.id,
+                            on: {
+                              click: function($event) {
+                                return _vm.selectProfessor(professor)
+                              }
+                            }
+                          },
+                          [_vm._v(_vm._s(professor.nome))]
+                        )
+                      })
+                    ],
+                    2
+                  )
                 ],
                 1
               ),
@@ -52384,8 +52759,12 @@ var render = function() {
           _c(
             "b-button",
             {
-              attrs: { variant: "danger" },
-              on: { click: _vm.deleteProfessor }
+              attrs: { id: "show-btn", variant: "danger" },
+              on: {
+                click: function($event) {
+                  return _vm.$bvModal.show(_vm.modal_name)
+                }
+              }
             },
             [_vm._v("Excluir")]
           )
@@ -52403,6 +52782,77 @@ var render = function() {
         "b-card-footer",
         { staticClass: "text-muted", staticStyle: { "font-size": "11px" } },
         [_vm._v("Alterado em " + _vm._s(_vm.professor.updated_at))]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        [
+          _c(
+            "b-modal",
+            {
+              attrs: { id: _vm.modal_name },
+              scopedSlots: _vm._u([
+                {
+                  key: "modal-title",
+                  fn: function() {
+                    return [
+                      _vm._v(
+                        "\n                " +
+                          _vm._s(_vm.professor.nome) +
+                          "\n            "
+                      )
+                    ]
+                  },
+                  proxy: true
+                },
+                {
+                  key: "modal-footer",
+                  fn: function() {
+                    return [
+                      _c(
+                        "b-button",
+                        {
+                          staticClass: "mt-3",
+                          attrs: { block: "", variant: "primary" },
+                          on: {
+                            click: function($event) {
+                              return _vm.$bvModal.hide(_vm.modal_name)
+                            }
+                          }
+                        },
+                        [_vm._v("Cancelar")]
+                      ),
+                      _vm._v(" "),
+                      _c(
+                        "b-button",
+                        {
+                          staticClass: "mt-3",
+                          attrs: { block: "", variant: "danger" },
+                          on: { click: _vm.deleteProfessor }
+                        },
+                        [_vm._v("Excluir")]
+                      )
+                    ]
+                  },
+                  proxy: true
+                }
+              ])
+            },
+            [
+              _vm._v(" "),
+              _c("div", { staticClass: "d-block text-center" }, [
+                _c("h3", [
+                  _vm._v(
+                    "Tem certeza que deseja excluir " +
+                      _vm._s(_vm.professor.nome) +
+                      "?"
+                  )
+                ])
+              ])
+            ]
+          )
+        ],
+        1
       )
     ],
     1
@@ -68495,8 +68945,13 @@ var routes = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
     component: _components_Disciplinas__WEBPACK_IMPORTED_MODULE_4__["default"]
   }, {
     path: '/disciplinas/create',
-    name: 'disciplinascreate',
+    name: 'disciplinacreate',
     component: _components_DisciplinaForm__WEBPACK_IMPORTED_MODULE_5__["default"]
+  }, {
+    path: '/disciplinas/edit',
+    name: 'disciplinaedit',
+    component: _components_DisciplinaForm__WEBPACK_IMPORTED_MODULE_5__["default"],
+    props: true
   }, {
     path: '/',
     name: 'home',

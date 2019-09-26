@@ -27,13 +27,10 @@ class ProfessorController extends Controller
         return $collection;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * NOT USED
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create() {}
+    public function getOne(Request $request)
+    {
+        return Professor::findOrFail(request('id'));
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -54,26 +51,10 @@ class ProfessorController extends Controller
         $professor->save();
 
         for ($i = 0; $i < count(request('professor.etiquetas')); ++$i)
-            $professor->addTelefone($professor->id, request('professor.etiquetas')[$i], request('professor.telefones')[$i]);
+            $professor->addTelefone(request('professor.etiquetas')[$i], request('professor.telefones')[$i]);
+
+        return $request;
     }
-
-    /**
-     * Display the specified resource.
-     * NOT USED
-     *
-     * @param  \App\Professor  $professor
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id) {}
-
-    /**
-     * Show the form for editing the specified resource.
-     * NOT USED
-     *
-     * @param  \App\Professor  $professor
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id) {}
 
     /**
      * Update the specified resource in storage.
@@ -96,16 +77,6 @@ class ProfessorController extends Controller
 
         for ($i = 0; $i < count(request('professor.etiquetas')); ++$i)
             $professor->addTelefone($professor->id, request('professor.etiquetas')[$i], request('professor.telefones')[$i]);
-        // ----------------------------------------
-        $professor = Professor::findOrFail($id);
-        $attributes = request()->validate([
-            'nome' => ['required'],
-            'matricula' => ['required'],
-            'data_nasc' => ['required'],
-            'email' => ['required']
-        ]);
-        $professor->update($attributes);
-        return redirect('professores');
     }
 
     /**
@@ -114,10 +85,9 @@ class ProfessorController extends Controller
      * @param  \App\Professor  $professor
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $professor = Professor::findOrFail($id);
+        $professor = Professor::findOrFail(request('id'));
         $professor->delete();
-        return redirect('professores');
     }
 }

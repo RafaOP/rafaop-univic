@@ -18,14 +18,9 @@ class DisciplinaController extends Controller
         return Disciplina::all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function getOne(Request $request)
     {
-        return view('disciplinas.create', ['professores' => Professor::all()]);
+        return Disciplina::findOrFail(request('id'));
     }
 
     /**
@@ -36,61 +31,44 @@ class DisciplinaController extends Controller
      */
     public function store(Request $request)
     {
-        $attributes = request()->validate([
-            'nome' => ['required'],
-            'sigla' => ['required'],
-            'carga' => ['required'],
-            'professor_id' => []
-        ]);
+        $attributes = [
+            'nome' => request('disciplina.nome'),
+            'sigla' => request('disciplina.sigla'),
+            'carga' => request('disciplina.carga'),
+            'professor_id' => request('disciplina.professor_id')
+        ];
+
         Disciplina::create($attributes);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Disciplina  $disciplina
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Disciplina $disciplina)
-    {
-        return view('disciplinas.show', compact('disciplina'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Disciplina  $disciplina
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Disciplina $disciplina)
-    {
-        $professores = Professor::all();
-        return view('disciplinas.edit', compact('disciplina', 'professores'));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Disciplina  $disciplina
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Disciplina $disciplina)
+    public function update(Request $request)
     {
-        $disciplina->update(request(['nome','sigla', 'carga', 'professor_id']));
+        $attributes = [
+            'nome' => request('disciplina.nome'),
+            'sigla' => request('disciplina.sigla'),
+            'carga' => request('disciplina.carga'),
+            'professor_id' => request('disciplina.professor_id')
+        ];
 
-        return redirect('/disciplinas');
+        $disciplina = Disciplina::findOrFail(request('disciplina.id'));
+        $disciplina->update($attributes);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Disciplina  $disciplina
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Disciplina $disciplina)
+    public function destroy(Request $request)
     {
+        $disciplina = Disciplina::findOrFail(request('id'));
         $disciplina->delete();
-        return redirect('disciplinas');
     }
 }

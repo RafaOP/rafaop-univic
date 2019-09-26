@@ -34,6 +34,6 @@ class Professor extends Model
         $telefone->professor_id = $this->id;
         $telefone->etiqueta = $etiqueta;
         $telefone->numero = $numero;
-        $telefone.save();
+        $telefone->save();
     }
 }
