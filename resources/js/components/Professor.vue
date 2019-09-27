@@ -17,7 +17,10 @@
         </b-card-body>
 
         <b-list-group flush>
-            <b-list-group-item v-for="tel in professor.telefones" :key="tel.id" :tel="tel">{{ tel.etiqueta }}: {{ tel.numero }}</b-list-group-item>
+            <b-list-group-item v-for="tel in professor.telefones" :key="tel.id" :tel="tel">
+                {{ tel.etiqueta }}: {{ tel.numero }}
+                <b-badge v-if="tel.principal" variant="info">Principal</b-badge>
+            </b-list-group-item>
         </b-list-group>
 
         <b-card-body>
@@ -50,15 +53,14 @@
     export default {
         data() {
             return {
-                modal_name: 'modal-name'
+                modal_name: 'modal-name',
+                disciplinas: []
             };
         },
         name: "Professor",
         props: { professor: Object },
         methods: {
             editProfessor() {
-                console.log('Passing ' + this.professor.id);
-                console.log(this.professor);
                 this.$router.push({ name: 'professoredit', params: {professor: this.professor} });
             },
             deleteProfessor() {

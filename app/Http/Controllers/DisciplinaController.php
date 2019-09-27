@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Disciplina;
 use App\Professor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DisciplinaController extends Controller
 {
@@ -21,6 +22,11 @@ class DisciplinaController extends Controller
     public function getOne(Request $request)
     {
         return Disciplina::findOrFail(request('id'));
+    }
+
+    public function getFatherless()
+    {
+        return DB::table('disciplinas')->where('professor_id', null)->get();
     }
 
     /**

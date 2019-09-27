@@ -27,5 +27,6 @@ Route::patch('professores', 'ProfessorController@update');
 Route::patch('disciplinas', 'DisciplinaController@update');
 Route::post('professor', 'ProfessorController@getOne');
 Route::post('disciplina', 'DisciplinaController@getOne');
+Route::get('disciplina', 'DisciplinaController@getFatherless');
 // Route::get('disciplinas', 'DisciplinaController@getOne');
 // Route::get('professores', 'ProfessorController@getOne');

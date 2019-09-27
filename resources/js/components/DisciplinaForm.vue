@@ -1,6 +1,6 @@
 <template>
     <div class="row d-flex justify-content-center">
-        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show">
+        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show" @keydown="errors = []">
             <b-form-group id="input-group-1" label="Nome:" label-for="nome">
                 <b-form-input
                     id="nome"
@@ -41,11 +41,15 @@
             >
                 <b-dropdown id="professor">
                     <template v-slot:button-content>
-                        {{ selected ? selected.nome : "Professor" }}
+                        {{ selected ? selected.nome : "Sem professor" }}
                     </template>
                     <b-dropdown-item v-for="professor in professores" :key="professor.id" @click="selectProfessor(professor)">{{ professor.nome }}</b-dropdown-item>
                 </b-dropdown>
             </b-form-group>
+
+            <template v-if="errors.length">
+                <b-alert v-for="error in errors" :key="error" variant="danger" show>{{ error }}</b-alert>
+            </template>
 
             <b-button type="submit" variant="primary">Submit</b-button>
             <b-button type="reset" variant="danger">Reset</b-button>
@@ -69,6 +73,7 @@
                 },
                 professores: [],
                 selected: null,
+                errors: [],
                 show: true
             }
         },
@@ -83,13 +88,8 @@
                 this.form.carga = this.disciplina.carga;
                 this.form.professor_id = this.disciplina.professor_id;
             }
-            else {  // Necessário para evitar um TypeError: this.professor is undefined
-                this.form.id = '';
-                this.form.nome = '';
-                this.form.sigla = '';
-                this.form.carga = '';
-            }
 
+            this.professores.push({'professor_id': null, 'nome': 'Sem professor'});
             axios.get('/api/professores').then(({data}) => {
                 data.forEach(professor => {
                     this.professores.push(professor);
@@ -104,8 +104,24 @@
         },
         name: "DisciplinaForm",
         methods: {
+            checkForm() {
+                if (!this.form.nome)
+                    this.errors.push('O campo nome não pode estar vazio!');
+                if (!this.form.sigla)
+                    this.errors.push('O campo sigla não pode estar vazio!');
+                if (!this.form.carga)
+                    this.errors.push('O campo carga horária não pode estar vazio!');
+                else if (isNaN(this.form.carga))
+                    this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
+                else if (this.form.carga < 0)
+                    this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
+
+                return this.errors.length == 0;
+            },
             onSubmit(evt) {
                 evt.preventDefault();
+                if (!this.checkForm()) return;
+
                 if (!this.disciplina) {
                     console.log('CREATE');
                     axios.post('/api/disciplinas', {disciplina: this.form}).then(({data}) => {
@@ -121,7 +137,7 @@
                 else {
                     console.log('UPDATE');
                     axios.patch('/api/disciplinas', {disciplina: this.form}).then(({data}) => {
-                    console.log(data);
+                        console.log(data);
                     }).catch(function (error) {
                         if (error.response) {
                             console.log(error.response.data);
@@ -139,6 +155,7 @@
                 this.form.nome = '';
                 this.form.sigla = '';
                 this.form.carga = null;
+                this.form.professor_id = null;
                 this.selected = null;
 
                 // Reseta o estado de validação do browser

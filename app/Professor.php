@@ -28,12 +28,19 @@ class Professor extends Model
         return $this->hasMany(Telefone::class);
     }
 
-    public function addTelefone($etiqueta, $numero)
+    public function addTelefone($principal, $etiqueta, $numero)
     {
         $telefone = new Telefone;
         $telefone->professor_id = $this->id;
+        $telefone->principal = $principal;
         $telefone->etiqueta = $etiqueta;
         $telefone->numero = $numero;
         $telefone->save();
+    }
+
+    public function updateTelefone($id, $principal, $etiqueta, $numero)
+    {
+        $telefone = Telefone::findOrFail($id);
+        $telefone->update(compact('principal', 'etiqueta', 'numero'));
     }
 }

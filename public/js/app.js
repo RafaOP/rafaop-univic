@@ -2010,6 +2010,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2022,6 +2026,7 @@ __webpack_require__.r(__webpack_exports__);
       },
       professores: [],
       selected: null,
+      errors: [],
       show: true
     };
   },
@@ -2037,14 +2042,12 @@ __webpack_require__.r(__webpack_exports__);
       this.form.sigla = this.disciplina.sigla;
       this.form.carga = this.disciplina.carga;
       this.form.professor_id = this.disciplina.professor_id;
-    } else {
-      // Necessário para evitar um TypeError: this.professor is undefined
-      this.form.id = '';
-      this.form.nome = '';
-      this.form.sigla = '';
-      this.form.carga = '';
     }
 
+    this.professores.push({
+      'professor_id': null,
+      'nome': 'Sem professor'
+    });
     axios.get('/api/professores').then(function (_ref) {
       var data = _ref.data;
       data.forEach(function (professor) {
@@ -2060,8 +2063,15 @@ __webpack_require__.r(__webpack_exports__);
   },
   name: "DisciplinaForm",
   methods: {
+    checkForm: function checkForm() {
+      if (!this.form.nome) this.errors.push('O campo nome não pode estar vazio!');
+      if (!this.form.sigla) this.errors.push('O campo sigla não pode estar vazio!');
+      if (!this.form.carga) this.errors.push('O campo carga horária não pode estar vazio!');else if (isNaN(this.form.carga)) this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');else if (this.form.carga < 0) this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
+      return this.errors.length == 0;
+    },
     onSubmit: function onSubmit(evt) {
       evt.preventDefault();
+      if (!this.checkForm()) return;
 
       if (!this.disciplina) {
         console.log('CREATE');
@@ -2109,6 +2119,7 @@ __webpack_require__.r(__webpack_exports__);
       this.form.nome = '';
       this.form.sigla = '';
       this.form.carga = null;
+      this.form.professor_id = null;
       this.selected = null; // Reseta o estado de validação do browser
 
       this.show = false;
@@ -2175,10 +2186,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Example.vue?vue&type=script&lang=js&":
-/*!******************************************************************************************************************************************************************!*\
-  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Example.vue?vue&type=script&lang=js& ***!
-  \******************************************************************************************************************************************************************/
+/***/ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Intro.vue?vue&type=script&lang=js&":
+/*!****************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib??ref--4-0!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Intro.vue?vue&type=script&lang=js& ***!
+  \****************************************************************************************************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -2265,10 +2276,14 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      modal_name: 'modal-name'
+      modal_name: 'modal-name',
+      disciplinas: []
     };
   },
   name: "Professor",
@@ -2277,8 +2292,6 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     editProfessor: function editProfessor() {
-      console.log('Passing ' + this.professor.id);
-      console.log(this.professor);
       this.$router.push({
         name: 'professoredit',
         params: {
@@ -2409,6 +2422,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2418,11 +2433,14 @@ __webpack_require__.r(__webpack_exports__);
         nome: '',
         matricula: '',
         data_nasc: '',
-        etiquetas: [],
         telefones: []
       },
+      selected: 0,
+      etiquetas: [],
+      telefones: [],
       ntel: 1,
-      show: true
+      show: true,
+      errors: []
     };
   },
   props: {
@@ -2438,30 +2456,57 @@ __webpack_require__.r(__webpack_exports__);
       this.ntel = this.professor.telefones.length;
 
       for (var i = 0; i < this.ntel; ++i) {
-        this.form.etiquetas.push(this.professor.telefones[i].etiqueta);
-        this.form.telefones.push(this.professor.telefones[i].numero);
+        var tel = this.professor.telefones[i];
+        this.etiquetas.push(tel.etiqueta);
+        this.telefones.push(tel.numero);
+        if (tel.principal) this.selected = i;
       }
-    } else {
-      // Necessário para evitar um TypeError: this.professor is undefined
-      this.form.id = '';
-      this.form.email = '';
-      this.form.nome = '';
-      this.form.matricula = '';
-      this.form.data_nasc = '';
-      this.ntel = 1;
-    } // Se o professor não tem nenhum telefone cadastrado
-
-
-    if (this.ntel == 0) {
-      this.ntel = 1;
-      this.form.etiquetas.push('');
-      this.form.telefones.push('');
     }
   },
   name: "ProfessorForm",
   methods: {
+    checkForm: function checkForm() {
+      this.errors = [];
+      if (!this.form.nome) this.errors.push('O campo nome não pode estar vazio!');
+      if (!isNaN(this.form.nome)) this.errors.push('O campo nome não deve conter um número!');
+      if (!this.form.matricula) this.errors.push('O campo matrícula não pode estar vazio!');
+      if (!this.form.email) this.errors.push('O campo email não pode estar vazio!');
+      if (!this.form.data_nasc) this.errors.push('O campo data de nascimento não pode estar vazio!');else if (new Date(this.form.data_nasc) >= new Date()) this.errors.push('O campo data de nascimento não pode conter uma data no futuro!');else {
+        var date = new Date();
+        date.setFullYear(date.getFullYear() - 18);
+        if (new Date(this.form.data_nasc) > date) this.errors.push('O professor deve ter, no mínimo, 18 anos de idade!');
+      }
+
+      if (!this.etiquetas[this.selected] || !this.telefones[this.selected]) {
+        this.errors.push('O campo com o telefone principal não pode estar vazio!');
+      }
+
+      return this.errors.length == 0;
+    },
+    // Exclui os campos de telefone vazios antes de enviar para o servidor
+    validatePhonesFields: function validatePhonesFields() {
+      for (var i = 0; i < this.ntel; ++i) {
+        if (!this.etiquetas[i] && !this.telefones[i]) {
+          this.etiquetas.splice(i, 1);
+          this.telefones.splice(i, 1);
+          if (this.selected > i) this.selected--;
+          i--;
+          this.ntel--;
+        }
+      }
+    },
     onSubmit: function onSubmit(evt) {
       evt.preventDefault();
+      if (!this.checkForm()) return;
+      this.validatePhonesFields();
+
+      for (var i = 0; i < this.telefones.length; ++i) {
+        this.form.telefones.push({
+          'principal': this.selected == i ? true : false,
+          'etiqueta': this.etiquetas[i],
+          'numero': this.telefones[i]
+        });
+      }
 
       if (!this.professor) {
         axios.post('/api/professores', {
@@ -2508,24 +2553,25 @@ __webpack_require__.r(__webpack_exports__);
       this.form.nome = '';
       this.form.matricula = '';
       this.form.data_nasc = '';
-      this.form.etiquetas = [], this.form.telefones = [], this.ntel = 1; // Reseta o estado de validação do browser
+      this.selected = 0;
+      this.etiquetas = [], this.telefones = [], this.errors = [];
+      this.ntel = 1; // Reseta o estado de validação do browser
 
       this.show = false;
       this.$nextTick(function () {
         _this.show = true;
       });
     },
-    addTelefone: function addTelefone(e) {
-      e.preventDefault();
+    addTelefone: function addTelefone() {
       this.ntel += 1;
-      this.form.telefones.length = this.ntel;
-      this.form.etiquetas.length = this.ntel;
+      this.telefones.length = this.ntel;
+      this.etiquetas.length = this.ntel;
     },
-    delTelefone: function delTelefone(e) {
-      e.preventDefault();
+    delTelefone: function delTelefone() {
       this.ntel -= 1;
-      this.form.telefones.length = this.ntel;
-      this.form.etiquetas.length = this.ntel;
+      if (this.selected > this.ntel) this.selected = 0;
+      this.telefones.length = this.ntel;
+      this.etiquetas.length = this.ntel;
     }
   }
 });
@@ -2557,7 +2603,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
-      professores: []
+      professores: [],
+      disciplinas: []
     };
   },
   methods: {
@@ -2568,6 +2615,11 @@ __webpack_require__.r(__webpack_exports__);
         var data = _ref.data;
         data.forEach(function (professor) {
           _this.professores.push(professor);
+        });
+      });
+      axios.get('/api/disciplina').then(function (_ref2) {
+        var data = _ref2.data;
+        data.forEach(function (disciplina) {// console.log(data);
         });
       });
     }
@@ -52247,7 +52299,9 @@ var render = function() {
                 )
               ])
             : _c("b-list-group-item", [
-                _vm._v("Esse disciplina não tem um professor.")
+                _vm._v("Esta disciplina "),
+                _c("b", [_vm._v("não tem")]),
+                _vm._v(" um professor.")
               ])
         ],
         1
@@ -52399,7 +52453,13 @@ var render = function() {
             {
               staticClass: "w-25",
               attrs: { method: "POST" },
-              on: { submit: _vm.onSubmit, reset: _vm.onReset }
+              on: {
+                submit: _vm.onSubmit,
+                reset: _vm.onReset,
+                keydown: function($event) {
+                  _vm.errors = []
+                }
+              }
             },
             [
               _c(
@@ -52513,7 +52573,7 @@ var render = function() {
                                     _vm._s(
                                       _vm.selected
                                         ? _vm.selected.nome
-                                        : "Professor"
+                                        : "Sem professor"
                                     ) +
                                     "\n                "
                                 )
@@ -52524,7 +52584,7 @@ var render = function() {
                         ],
                         null,
                         false,
-                        2177999859
+                        470504872
                       )
                     },
                     [
@@ -52550,6 +52610,16 @@ var render = function() {
                 1
               ),
               _vm._v(" "),
+              _vm.errors.length
+                ? _vm._l(_vm.errors, function(error) {
+                    return _c(
+                      "b-alert",
+                      { key: error, attrs: { variant: "danger", show: "" } },
+                      [_vm._v(_vm._s(error))]
+                    )
+                  })
+                : _vm._e(),
+              _vm._v(" "),
               _c(
                 "b-button",
                 { attrs: { type: "submit", variant: "primary" } },
@@ -52560,7 +52630,7 @@ var render = function() {
                 _vm._v("Reset")
               ])
             ],
-            1
+            2
           )
         : _vm._e()
     ],
@@ -52629,10 +52699,10 @@ render._withStripped = true
 
 /***/ }),
 
-/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Example.vue?vue&type=template&id=63af75cf&":
-/*!**********************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Example.vue?vue&type=template&id=63af75cf& ***!
-  \**********************************************************************************************************************************************************************************************************/
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Intro.vue?vue&type=template&id=0648c911&":
+/*!********************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib??vue-loader-options!./resources/js/components/Intro.vue?vue&type=template&id=0648c911& ***!
+  \********************************************************************************************************************************************************************************************************/
 /*! exports provided: render, staticRenderFns */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -52656,12 +52726,14 @@ var staticRenderFns = [
         _c("div", { staticClass: "col-md-8" }, [
           _c("div", { staticClass: "card card-default" }, [
             _c("div", { staticClass: "card-header" }, [
-              _vm._v("Example Component")
+              _c("b", [
+                _vm._v("Univiçosa - 1ª Etapa - Teste Prático - Edital 17/2019")
+              ])
             ]),
             _vm._v(" "),
             _c("div", { staticClass: "card-body" }, [
               _vm._v(
-                "\n                    I'm an example component.\n                "
+                "\n                    Projeto prático desenvolvido para o processo seletivo para vaga de Desenvolvedor Web!\n                "
               )
             ])
           ])
@@ -52740,9 +52812,25 @@ var render = function() {
         "b-list-group",
         { attrs: { flush: "" } },
         _vm._l(_vm.professor.telefones, function(tel) {
-          return _c("b-list-group-item", { key: tel.id, attrs: { tel: tel } }, [
-            _vm._v(_vm._s(tel.etiqueta) + ": " + _vm._s(tel.numero))
-          ])
+          return _c(
+            "b-list-group-item",
+            { key: tel.id, attrs: { tel: tel } },
+            [
+              _vm._v(
+                "\n            " +
+                  _vm._s(tel.etiqueta) +
+                  ": " +
+                  _vm._s(tel.numero) +
+                  "\n            "
+              ),
+              tel.principal
+                ? _c("b-badge", { attrs: { variant: "info" } }, [
+                    _vm._v("Principal")
+                  ])
+                : _vm._e()
+            ],
+            1
+          )
         }),
         1
       ),
@@ -52890,7 +52978,13 @@ var render = function() {
             {
               staticClass: "w-25",
               attrs: { method: "POST" },
-              on: { submit: _vm.onSubmit, reset: _vm.onReset }
+              on: {
+                submit: _vm.onSubmit,
+                reset: _vm.onReset,
+                keydown: function($event) {
+                  _vm.errors = []
+                }
+              }
             },
             [
               _c(
@@ -53016,150 +53110,145 @@ var render = function() {
                     "label-for": "telefones"
                   }
                 },
-                [
-                  _c(
+                _vm._l(_vm.ntel, function(index) {
+                  return _c(
                     "b-input-group",
-                    {
-                      staticClass: "mb-2",
-                      attrs: { prepend: "Etiqueta e telefone" }
-                    },
+                    { key: index, staticClass: "mb-2" },
                     [
-                      _vm.ntel >= 1
-                        ? [
-                            _c("b-form-input", {
-                              attrs: {
-                                "aria-label": "Etiqueta",
-                                placeholder: "Etiqueta"
-                              },
-                              model: {
-                                value: _vm.form.etiquetas[0],
-                                callback: function($$v) {
-                                  _vm.$set(_vm.form.etiquetas, 0, $$v)
-                                },
-                                expression: "form.etiquetas[0]"
-                              }
-                            }),
-                            _vm._v(" "),
-                            _c("b-form-input", {
-                              attrs: {
-                                "aria-label": "Telefone",
-                                placeholder: "Telefone"
-                              },
-                              model: {
-                                value: _vm.form.telefones[0],
-                                callback: function($$v) {
-                                  _vm.$set(_vm.form.telefones, 0, $$v)
-                                },
-                                expression: "form.telefones[0]"
-                              }
-                            })
-                          ]
-                        : [
-                            _c("b-form-input", {
-                              attrs: {
-                                "aria-label": "Etiqueta",
-                                placeholder: "Etiqueta"
-                              },
-                              model: {
-                                value: _vm.form.etiquetas[0],
-                                callback: function($$v) {
-                                  _vm.$set(_vm.form.etiquetas, 0, $$v)
-                                },
-                                expression: "form.etiquetas[0]"
-                              }
-                            }),
-                            _vm._v(" "),
-                            _c("b-form-input", {
-                              attrs: {
-                                "aria-label": "Telefone",
-                                placeholder: "Telefone"
-                              },
-                              model: {
-                                value: _vm.form.telefones[0],
-                                callback: function($$v) {
-                                  _vm.$set(_vm.form.telefones, 0, $$v)
-                                },
-                                expression: "form.telefones[0]"
-                              }
-                            })
-                          ],
-                      _vm._v(" "),
                       _c(
-                        "b-input-group-append",
+                        "b-input-group-prepend",
+                        { attrs: { id: "tooltip-target", "is-text": "" } },
                         [
-                          _c(
-                            "b-button",
-                            {
-                              attrs: { variant: "success" },
-                              on: { click: _vm.addTelefone }
+                          _c("b-form-radio", {
+                            attrs: {
+                              value: index - 1,
+                              "aria-label": "Principal"
                             },
-                            [_vm._v("+")]
-                          )
+                            model: {
+                              value: _vm.selected,
+                              callback: function($$v) {
+                                _vm.selected = $$v
+                              },
+                              expression: "selected"
+                            }
+                          })
                         ],
                         1
-                      )
-                    ],
-                    2
-                  ),
-                  _vm._v(" "),
-                  _vm._l(_vm.ntel - 1, function(index) {
-                    return _c(
-                      "b-input-group",
-                      {
-                        key: index,
-                        staticClass: "mb-2",
-                        attrs: { prepend: "Etiqueta e telefone" }
-                      },
-                      [
-                        _c("b-form-input", {
-                          attrs: {
-                            "aria-label": "Etiqueta",
-                            placeholder: "Etiqueta"
-                          },
-                          model: {
-                            value: _vm.form.etiquetas[index],
-                            callback: function($$v) {
-                              _vm.$set(_vm.form.etiquetas, index, $$v)
+                      ),
+                      _vm._v(" "),
+                      index == 1
+                        ? _c("b-form-input", {
+                            attrs: {
+                              "aria-label": "Etiqueta",
+                              placeholder: "Etiqueta",
+                              required: ""
                             },
-                            expression: "form.etiquetas[index]"
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c("b-form-input", {
-                          attrs: {
-                            "aria-label": "Telefone",
-                            placeholder: "Telefone"
-                          },
-                          model: {
-                            value: _vm.form.telefones[index],
-                            callback: function($$v) {
-                              _vm.$set(_vm.form.telefones, index, $$v)
-                            },
-                            expression: "form.telefones[index]"
-                          }
-                        }),
-                        _vm._v(" "),
-                        _c(
-                          "b-input-group-append",
-                          [
-                            _c(
-                              "b-button",
-                              {
-                                attrs: { variant: "danger" },
-                                on: { click: _vm.delTelefone }
+                            model: {
+                              value: _vm.etiquetas[index - 1],
+                              callback: function($$v) {
+                                _vm.$set(_vm.etiquetas, index - 1, $$v)
                               },
-                              [_vm._v("-")]
-                            )
-                          ],
-                          1
-                        )
-                      ],
-                      1
+                              expression: "etiquetas[index - 1]"
+                            }
+                          })
+                        : _c("b-form-input", {
+                            attrs: {
+                              "aria-label": "Etiqueta",
+                              placeholder: "Etiqueta"
+                            },
+                            model: {
+                              value: _vm.etiquetas[index - 1],
+                              callback: function($$v) {
+                                _vm.$set(_vm.etiquetas, index - 1, $$v)
+                              },
+                              expression: "etiquetas[index - 1]"
+                            }
+                          }),
+                      _vm._v(" "),
+                      index == 1
+                        ? _c("b-form-input", {
+                            attrs: {
+                              "aria-label": "Telefone",
+                              placeholder: "Telefone",
+                              required: ""
+                            },
+                            model: {
+                              value: _vm.telefones[index - 1],
+                              callback: function($$v) {
+                                _vm.$set(_vm.telefones, index - 1, $$v)
+                              },
+                              expression: "telefones[index - 1]"
+                            }
+                          })
+                        : _c("b-form-input", {
+                            attrs: {
+                              "aria-label": "Telefone",
+                              placeholder: "Telefone"
+                            },
+                            model: {
+                              value: _vm.telefones[index - 1],
+                              callback: function($$v) {
+                                _vm.$set(_vm.telefones, index - 1, $$v)
+                              },
+                              expression: "telefones[index - 1]"
+                            }
+                          }),
+                      _vm._v(" "),
+                      index == 1
+                        ? _c(
+                            "b-input-group-append",
+                            [
+                              _c(
+                                "b-button",
+                                {
+                                  attrs: { variant: "success" },
+                                  on: { click: _vm.addTelefone }
+                                },
+                                [_vm._v("+")]
+                              )
+                            ],
+                            1
+                          )
+                        : _c(
+                            "b-input-group-append",
+                            [
+                              _c(
+                                "b-button",
+                                {
+                                  attrs: { variant: "danger" },
+                                  on: { click: _vm.delTelefone }
+                                },
+                                [_vm._v("-")]
+                              )
+                            ],
+                            1
+                          )
+                    ],
+                    1
+                  )
+                }),
+                1
+              ),
+              _vm._v(" "),
+              _c(
+                "b-tooltip",
+                { attrs: { target: "tooltip-target", triggers: "hover" } },
+                [
+                  _vm._v(
+                    "\n            Selecione para marcar este telefone como o principal\n        "
+                  )
+                ]
+              ),
+              _vm._v(" "),
+              _vm.errors.length
+                ? _vm._l(_vm.errors, function(error) {
+                    return _c(
+                      "b-alert",
+                      { key: error, attrs: { variant: "danger", show: "" } },
+                      [_vm._v(_vm._s(error))]
                     )
                   })
-                ],
-                2
-              ),
+                : _vm._e(),
               _vm._v(" "),
               _c(
                 "b-button",
@@ -53171,7 +53260,7 @@ var render = function() {
                 _vm._v("Reset")
               ])
             ],
-            1
+            2
           )
         : _vm._e()
     ],
@@ -53212,7 +53301,7 @@ var render = function() {
             _vm._l(_vm.professores, function(professor) {
               return _c("ProfessorComponent", {
                 key: professor.id,
-                attrs: { professor: professor }
+                attrs: { professor: professor, disciplinas: _vm.disciplinas }
               })
             }),
             1
@@ -68623,17 +68712,17 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./resources/js/components/Example.vue":
-/*!*********************************************!*\
-  !*** ./resources/js/components/Example.vue ***!
-  \*********************************************/
+/***/ "./resources/js/components/Intro.vue":
+/*!*******************************************!*\
+  !*** ./resources/js/components/Intro.vue ***!
+  \*******************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Example_vue_vue_type_template_id_63af75cf___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Example.vue?vue&type=template&id=63af75cf& */ "./resources/js/components/Example.vue?vue&type=template&id=63af75cf&");
-/* harmony import */ var _Example_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Example.vue?vue&type=script&lang=js& */ "./resources/js/components/Example.vue?vue&type=script&lang=js&");
+/* harmony import */ var _Intro_vue_vue_type_template_id_0648c911___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Intro.vue?vue&type=template&id=0648c911& */ "./resources/js/components/Intro.vue?vue&type=template&id=0648c911&");
+/* harmony import */ var _Intro_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Intro.vue?vue&type=script&lang=js& */ "./resources/js/components/Intro.vue?vue&type=script&lang=js&");
 /* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
@@ -68643,9 +68732,9 @@ __webpack_require__.r(__webpack_exports__);
 /* normalize component */
 
 var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
-  _Example_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
-  _Example_vue_vue_type_template_id_63af75cf___WEBPACK_IMPORTED_MODULE_0__["render"],
-  _Example_vue_vue_type_template_id_63af75cf___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
+  _Intro_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _Intro_vue_vue_type_template_id_0648c911___WEBPACK_IMPORTED_MODULE_0__["render"],
+  _Intro_vue_vue_type_template_id_0648c911___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"],
   false,
   null,
   null,
@@ -68655,38 +68744,38 @@ var component = Object(_node_modules_vue_loader_lib_runtime_componentNormalizer_
 
 /* hot reload */
 if (false) { var api; }
-component.options.__file = "resources/js/components/Example.vue"
+component.options.__file = "resources/js/components/Intro.vue"
 /* harmony default export */ __webpack_exports__["default"] = (component.exports);
 
 /***/ }),
 
-/***/ "./resources/js/components/Example.vue?vue&type=script&lang=js&":
-/*!**********************************************************************!*\
-  !*** ./resources/js/components/Example.vue?vue&type=script&lang=js& ***!
-  \**********************************************************************/
+/***/ "./resources/js/components/Intro.vue?vue&type=script&lang=js&":
+/*!********************************************************************!*\
+  !*** ./resources/js/components/Intro.vue?vue&type=script&lang=js& ***!
+  \********************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Example_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./Example.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Example.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Example_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Intro_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib??ref--4-0!../../../node_modules/vue-loader/lib??vue-loader-options!./Intro.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Intro.vue?vue&type=script&lang=js&");
+/* empty/unused harmony star reexport */ /* harmony default export */ __webpack_exports__["default"] = (_node_modules_babel_loader_lib_index_js_ref_4_0_node_modules_vue_loader_lib_index_js_vue_loader_options_Intro_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
 
 /***/ }),
 
-/***/ "./resources/js/components/Example.vue?vue&type=template&id=63af75cf&":
-/*!****************************************************************************!*\
-  !*** ./resources/js/components/Example.vue?vue&type=template&id=63af75cf& ***!
-  \****************************************************************************/
+/***/ "./resources/js/components/Intro.vue?vue&type=template&id=0648c911&":
+/*!**************************************************************************!*\
+  !*** ./resources/js/components/Intro.vue?vue&type=template&id=0648c911& ***!
+  \**************************************************************************/
 /*! exports provided: render, staticRenderFns */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Example_vue_vue_type_template_id_63af75cf___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Example.vue?vue&type=template&id=63af75cf& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Example.vue?vue&type=template&id=63af75cf&");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Example_vue_vue_type_template_id_63af75cf___WEBPACK_IMPORTED_MODULE_0__["render"]; });
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Intro_vue_vue_type_template_id_0648c911___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib??vue-loader-options!./Intro.vue?vue&type=template&id=0648c911& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js?!./node_modules/vue-loader/lib/index.js?!./resources/js/components/Intro.vue?vue&type=template&id=0648c911&");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "render", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Intro_vue_vue_type_template_id_0648c911___WEBPACK_IMPORTED_MODULE_0__["render"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Example_vue_vue_type_template_id_63af75cf___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "staticRenderFns", function() { return _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_Intro_vue_vue_type_template_id_0648c911___WEBPACK_IMPORTED_MODULE_0__["staticRenderFns"]; });
 
 
 
@@ -68915,7 +69004,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _components_ProfessorForm__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./components/ProfessorForm */ "./resources/js/components/ProfessorForm.vue");
 /* harmony import */ var _components_Disciplinas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./components/Disciplinas */ "./resources/js/components/Disciplinas.vue");
 /* harmony import */ var _components_DisciplinaForm__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./components/DisciplinaForm */ "./resources/js/components/DisciplinaForm.vue");
-/* harmony import */ var _components_Example__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/Example */ "./resources/js/components/Example.vue");
+/* harmony import */ var _components_Intro__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./components/Intro */ "./resources/js/components/Intro.vue");
 
 
 
@@ -68955,7 +69044,7 @@ var routes = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
   }, {
     path: '/',
     name: 'home',
-    component: _components_Example__WEBPACK_IMPORTED_MODULE_6__["default"]
+    component: _components_Intro__WEBPACK_IMPORTED_MODULE_6__["default"]
   }]
 });
 /* harmony default export */ __webpack_exports__["default"] = (routes);

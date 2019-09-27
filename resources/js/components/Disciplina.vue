@@ -16,7 +16,7 @@
 
         <b-list-group flush>
                 <b-list-group-item v-if="disciplina.professor_id">Essa disciplina é lecionada por {{ professor.nome }}</b-list-group-item>
-                <b-list-group-item v-else>Esse disciplina não tem um professor.</b-list-group-item>
+                <b-list-group-item v-else>Esta disciplina <b>não tem</b> um professor.</b-list-group-item>
         </b-list-group>
 
         <b-card-body>

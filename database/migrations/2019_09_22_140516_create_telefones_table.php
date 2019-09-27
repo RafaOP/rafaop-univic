@@ -16,9 +16,14 @@ class CreateTelefonesTable extends Migration
         Schema::create('telefones', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedInteger('professor_id');
+            $table->boolean('principal')->default(false);
             $table->string('etiqueta');
             $table->string('numero');
             $table->timestamps();
+
+            $table->foreign('professor_id')
+            ->references('id')->on('professors')
+            ->onDelete('cascade');
         });
     }
 

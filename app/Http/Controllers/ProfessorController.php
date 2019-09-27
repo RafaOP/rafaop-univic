@@ -50,10 +50,9 @@ class ProfessorController extends Controller
         $professor = new Professor($attributes);
         $professor->save();
 
-        for ($i = 0; $i < count(request('professor.etiquetas')); ++$i)
-            $professor->addTelefone(request('professor.etiquetas')[$i], request('professor.telefones')[$i]);
-
-        return $request;
+        $telefones = request('professor.telefones');
+        foreach ($telefones as $tel)
+            $professor->addTelefone($tel['principal'], $tel['etiqueta'], $tel['numero']);
     }
 
     /**
@@ -75,8 +74,12 @@ class ProfessorController extends Controller
         $professor = Professor::findOrFail(request('professor.id'));
         $professor->update($attributes);
 
-        for ($i = 0; $i < count(request('professor.etiquetas')); ++$i)
-            $professor->addTelefone($professor->id, request('professor.etiquetas')[$i], request('professor.telefones')[$i]);
+        $telefones = DB::table('telefones')
+                        ->where('professor_id', '=', $professor->id)
+                        ->delete();
+        $telefones = request('professor.telefones');
+        foreach($telefones as $tel)
+            $professor->addTelefone($tel['principal'], $tel['etiqueta'], $tel['numero']);
     }
 
     /**

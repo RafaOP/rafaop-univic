@@ -5,7 +5,7 @@ import Professores from "./components/Professores";
 import ProfessorForm from "./components/ProfessorForm";
 import Disciplinas from "./components/Disciplinas";
 import DisciplinaForm from "./components/DisciplinaForm";
-import Example from "./components/Example";
+import Intro from "./components/Intro";
 
 Vue.use(VueRouter);
 
@@ -47,7 +47,7 @@ const routes = new VueRouter({
         {
             path: '/',
             name: 'home',
-            component: Example
+            component: Intro
         }
     ]
 });

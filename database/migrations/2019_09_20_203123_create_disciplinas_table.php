@@ -20,6 +20,10 @@ class CreateDisciplinasTable extends Migration
             $table->string('nome');
             $table->integer('carga');
             $table->timestamps();
+
+            $table->foreign('professor_id')
+            ->references('id')->on('professors')
+            ->onDelete('set null');
         });
     }
 

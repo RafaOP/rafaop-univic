@@ -1,6 +1,6 @@
 <template>
     <div class="row d-flex justify-content-center">
-        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show">
+        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show" @keydown="errors = []">
             <b-form-group id="input-group-1" label="Nome:" label-for="nome">
                 <b-form-input
                     id="nome"
@@ -52,28 +52,30 @@
                 label="Telefones:"
                 label-for="telefones"
             >
-                <b-input-group prepend="Etiqueta e telefone" class="mb-2">
-                    <template v-if="ntel >= 1">
-                        <b-form-input aria-label="Etiqueta" placeholder="Etiqueta" v-model="form.etiquetas[0]"></b-form-input>
-                        <b-form-input aria-label="Telefone" placeholder="Telefone" v-model="form.telefones[0]"></b-form-input>
-                    </template>
-                    <template v-else>
-                        <b-form-input aria-label="Etiqueta" placeholder="Etiqueta" v-model="form.etiquetas[0]"></b-form-input>
-                        <b-form-input aria-label="Telefone" placeholder="Telefone" v-model="form.telefones[0]"></b-form-input>
-                    </template>
-                        <b-input-group-append>
-                            <b-button variant="success" @click="addTelefone">+</b-button>
-                        </b-input-group-append>
-                </b-input-group>
-
-                <b-input-group v-for="index in (ntel-1)" :key="index" prepend="Etiqueta e telefone" class="mb-2">
-                    <b-form-input aria-label="Etiqueta" placeholder="Etiqueta" v-model="form.etiquetas[index]"></b-form-input>
-                    <b-form-input aria-label="Telefone" placeholder="Telefone" v-model="form.telefones[index]"></b-form-input>
-                    <b-input-group-append>
+                <b-input-group v-for="index in ntel" :key="index" class="mb-2">
+                    <b-input-group-prepend id="tooltip-target" is-text>
+                        <b-form-radio v-model="selected" :value="index - 1" aria-label="Principal"></b-form-radio>
+                    </b-input-group-prepend>
+                    <b-form-input v-if="index == 1" aria-label="Etiqueta" placeholder="Etiqueta" v-model="etiquetas[index - 1]" required></b-form-input>
+                    <b-form-input v-else aria-label="Etiqueta" placeholder="Etiqueta" v-model="etiquetas[index - 1]"></b-form-input>
+                    <b-form-input v-if="index == 1" aria-label="Telefone" placeholder="Telefone" v-model="telefones[index - 1]" required></b-form-input>
+                    <b-form-input v-else aria-label="Telefone" placeholder="Telefone" v-model="telefones[index - 1]"></b-form-input>
+                    <b-input-group-append v-if="index == 1">
+                        <b-button variant="success" @click="addTelefone">+</b-button>
+                    </b-input-group-append>
+                    <b-input-group-append v-else>
                         <b-button variant="danger" @click="delTelefone">-</b-button>
                     </b-input-group-append>
                 </b-input-group>
             </b-form-group>
+
+            <b-tooltip target="tooltip-target" triggers="hover">
+                Selecione para marcar este telefone como o principal
+            </b-tooltip>
+
+            <template v-if="errors.length">
+                <b-alert v-for="error in errors" :key="error" variant="danger" show>{{ error }}</b-alert>
+            </template>
 
             <b-button type="submit" variant="primary">Submit</b-button>
             <b-button type="reset" variant="danger">Reset</b-button>
@@ -94,11 +96,14 @@
                     nome: '',
                     matricula: '',
                     data_nasc: '',
-                    etiquetas: [],
-                    telefones: []
+                    telefones: [],
                 },
+                selected: 0,
+                etiquetas: [],
+                telefones: [],
                 ntel: 1,
-                show: true
+                show: true,
+                errors: []
             }
         },
         props: {
@@ -113,30 +118,69 @@
                 this.form.data_nasc = this.professor.data_nasc;
                 this.ntel = this.professor.telefones.length;
                 for (let i = 0; i < this.ntel; ++i) {
-                    this.form.etiquetas.push(this.professor.telefones[i].etiqueta);
-                    this.form.telefones.push(this.professor.telefones[i].numero);
+                    let tel = this.professor.telefones[i];
+                    this.etiquetas.push(tel.etiqueta);
+                    this.telefones.push(tel.numero);
+                    if (tel.principal)
+                        this.selected = i;
                 }
-            }
-            else {  // Necessário para evitar um TypeError: this.professor is undefined
-                this.form.id = '';
-                this.form.email = '';
-                this.form.nome = '';
-                this.form.matricula = '';
-                this.form.data_nasc = '';
-                this.ntel = 1;
-            }
-
-            // Se o professor não tem nenhum telefone cadastrado
-            if (this.ntel == 0) {
-                this.ntel = 1;
-                this.form.etiquetas.push('');
-                this.form.telefones.push('');
             }
         },
         name: "ProfessorForm",
         methods: {
+            checkForm() {
+                this.errors = [];
+
+                if (!this.form.nome)
+                    this.errors.push('O campo nome não pode estar vazio!');
+                if (!isNaN(this.form.nome))
+                    this.errors.push('O campo nome não deve conter um número!');
+                if (!this.form.matricula)
+                    this.errors.push('O campo matrícula não pode estar vazio!');
+                if (!this.form.email)
+                    this.errors.push('O campo email não pode estar vazio!');
+                if (!this.form.data_nasc)
+                    this.errors.push('O campo data de nascimento não pode estar vazio!');
+                else if (new Date(this.form.data_nasc) >= new Date())
+                    this.errors.push('O campo data de nascimento não pode conter uma data no futuro!');
+                else {
+                    let date = new Date();
+                    date.setFullYear(date.getFullYear() - 18);
+                    if (new Date(this.form.data_nasc) > date)
+                        this.errors.push('O professor deve ter, no mínimo, 18 anos de idade!');
+                }
+                if (!this.etiquetas[this.selected] || !this.telefones[this.selected]) {
+                    this.errors.push('O campo com o telefone principal não pode estar vazio!');
+                }
+
+                return this.errors.length == 0;
+            },
+            // Exclui os campos de telefone vazios antes de enviar para o servidor
+            validatePhonesFields() {
+                for (let i = 0; i < this.ntel; ++i) {
+                    if (!this.etiquetas[i] && !this.telefones[i]) {
+                        this.etiquetas.splice(i, 1);
+                        this.telefones.splice(i, 1);
+                        if (this.selected > i)
+                            this.selected--;
+                        i--;
+                        this.ntel--;
+                    }
+                }
+            },
             onSubmit(evt) {
                 evt.preventDefault();
+                if (!this.checkForm()) return;
+                this.validatePhonesFields();
+
+                for (let i = 0; i < this.telefones.length; ++i) {
+                    this.form.telefones.push({
+                        'principal': (this.selected == i ? true : false),
+                        'etiqueta': this.etiquetas[i],
+                        'numero': this.telefones[i]
+                    });
+                }
+
                 if (!this.professor) {
                     axios.post('/api/professores', {professor: this.form}).then(({data}) => {
                         console.log(data);
@@ -169,8 +213,10 @@
                 this.form.nome = '';
                 this.form.matricula = '';
                 this.form.data_nasc = '';
-                this.form.etiquetas = [],
-                this.form.telefones = [],
+                this.selected = 0;
+                this.etiquetas = [],
+                this.telefones = [],
+                this.errors = [];
                 this.ntel = 1;
 
                 // Reseta o estado de validação do browser
@@ -179,17 +225,17 @@
                     this.show = true;
                 });
             },
-            addTelefone: function(e) {
-                e.preventDefault();
+            addTelefone: function() {
                 this.ntel += 1;
-                this.form.telefones.length = this.ntel;
-                this.form.etiquetas.length = this.ntel;
+                this.telefones.length = this.ntel;
+                this.etiquetas.length = this.ntel;
             },
-            delTelefone: function(e) {
-                e.preventDefault();
+            delTelefone: function() {
                 this.ntel -= 1;
-                this.form.telefones.length = this.ntel;
-                this.form.etiquetas.length = this.ntel;
+                if (this.selected > this.ntel)
+                    this.selected = 0;
+                this.telefones.length = this.ntel;
+                this.etiquetas.length = this.ntel;
             }
         }
     }
