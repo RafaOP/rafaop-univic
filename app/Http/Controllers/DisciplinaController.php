@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class DisciplinaController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Retorna uma lista de todas as disciplinas.
      *
      * @return \Illuminate\Http\Response
      */
@@ -24,25 +24,30 @@ class DisciplinaController extends Controller
         return Disciplina::findOrFail(request('id'));
     }
 
+    /**
+     * Retorna todas as disciplinas que não possuem um professor.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function getFatherless()
     {
         return DB::table('disciplinas')->where('professor_id', null)->get();
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Amazena uma nova disciplina no banco de dados.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        $attributes = [
-            'nome' => request('disciplina.nome'),
-            'sigla' => request('disciplina.sigla'),
-            'carga' => request('disciplina.carga'),
-            'professor_id' => request('disciplina.professor_id')
-        ];
+        $attributes = request()->validate([
+            'nome' => ['required', 'max:255'],
+            'sigla' => ['required', 'max:255', 'unique:disciplinas'],
+            'carga' => ['required'],
+            'professor_id' => []
+        ]);
 
         Disciplina::create($attributes);
     }
@@ -55,14 +60,14 @@ class DisciplinaController extends Controller
      */
     public function update(Request $request)
     {
-        $attributes = [
-            'nome' => request('disciplina.nome'),
-            'sigla' => request('disciplina.sigla'),
-            'carga' => request('disciplina.carga'),
-            'professor_id' => request('disciplina.professor_id')
-        ];
+        $attributes = request()->validate([
+            'nome' => ['required', 'max:255'],
+            'sigla' => ['required', 'max:255'],
+            'carga' => ['required'],
+            'professor_id' => []
+        ]);
 
-        $disciplina = Disciplina::findOrFail(request('disciplina.id'));
+        $disciplina = Disciplina::findOrFail(request('id'));
         $disciplina->update($attributes);
     }
 

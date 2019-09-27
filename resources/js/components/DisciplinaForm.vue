@@ -1,6 +1,6 @@
 <template>
     <div class="row d-flex justify-content-center">
-        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show" @keydown="errors = []">
+        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show" @keydown="fe_errors = []; be_errors = {}">
             <b-form-group id="input-group-1" label="Nome:" label-for="nome">
                 <b-form-input
                     id="nome"
@@ -47,8 +47,12 @@
                 </b-dropdown>
             </b-form-group>
 
-            <template v-if="errors.length">
-                <b-alert v-for="error in errors" :key="error" variant="danger" show>{{ error }}</b-alert>
+            <template v-if="fe_errors.length">
+                <b-alert v-for="error in fe_errors" :key="error" variant="danger" show>{{ error }}</b-alert>
+            </template>
+
+            <template>
+                <b-alert v-for="field in be_errors" :key="field[0]" variant="danger" show>Erro de servidor: {{ field[0] }}</b-alert>
             </template>
 
             <b-button type="submit" variant="primary">Submit</b-button>
@@ -73,7 +77,8 @@
                 },
                 professores: [],
                 selected: null,
-                errors: [],
+                fe_errors: [],
+                be_errors: {},
                 show: true
             }
         },
@@ -106,48 +111,49 @@
         methods: {
             checkForm() {
                 if (!this.form.nome)
-                    this.errors.push('O campo nome não pode estar vazio!');
+                    this.fe_errors.push('O campo nome não pode estar vazio!');
                 if (!this.form.sigla)
-                    this.errors.push('O campo sigla não pode estar vazio!');
+                    this.fe_errors.push('O campo sigla não pode estar vazio!');
                 if (!this.form.carga)
-                    this.errors.push('O campo carga horária não pode estar vazio!');
+                    this.fe_errors.push('O campo carga horária não pode estar vazio!');
                 else if (isNaN(this.form.carga))
-                    this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
+                    this.fe_errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
                 else if (this.form.carga < 0)
-                    this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
+                    this.fe_errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
 
-                return this.errors.length == 0;
+                return this.fe_errors.length == 0;
             },
             onSubmit(evt) {
                 evt.preventDefault();
                 if (!this.checkForm()) return;
 
                 if (!this.disciplina) {
-                    console.log('CREATE');
-                    axios.post('/api/disciplinas', {disciplina: this.form}).then(({data}) => {
-                        console.log(data);
-                    }).catch(function (error) {
-                        if (error.response) {
-                            console.log(error.response.data);
-                            console.log(error.response.status);
-                            console.log(error.response.headers);
-                        };
-                    });
+                    axios.post('/api/disciplinas', {
+                        nome: this.form.nome,
+                        sigla: this.form.sigla,
+                        carga: this.form.carga,
+                        professor_id: this.form.professor_id
+                    }).then(data => this.$router.push({path: '/disciplinas'}))
+                    .catch(error => this.be_errors = (
+                        // A maneira correta de fazer esse tratamento seria criando uma Exception
+                        // com as mensagens desejadas
+                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outra disciplina com esta sigla!"]}
+                    ));
                 }
                 else {
-                    console.log('UPDATE');
-                    axios.patch('/api/disciplinas', {disciplina: this.form}).then(({data}) => {
-                        console.log(data);
-                    }).catch(function (error) {
-                        if (error.response) {
-                            console.log(error.response.data);
-                            console.log(error.response.status);
-                            console.log(error.response.headers);
-                        };
-                    });
+                    axios.patch('/api/disciplinas', {
+                        id: this.form.id,
+                        nome: this.form.nome,
+                        sigla: this.form.sigla,
+                        carga: this.form.carga,
+                        professor_id: this.form.professor_id
+                    }).then(data => this.$router.push({path: '/disciplinas'}))
+                    .catch(error => this.be_errors = (
+                        // A maneira correta de fazer esse tratamento seria criando uma Exception
+                        // com as mensagens desejadas
+                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outra disciplina com esta sigla!"]}
+                    ));
                 }
-
-                this.$router.push({path: '/disciplinas'});
             },
             onReset(evt) {
                 evt.preventDefault();

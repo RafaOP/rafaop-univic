@@ -1,6 +1,6 @@
 <template>
     <div class="row d-flex justify-content-center">
-        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show" @keydown="errors = []">
+        <b-form class="w-25" method="POST" @submit="onSubmit" @reset="onReset" v-if="show" @keydown="fe_errors = []; be_errors = {}">
             <b-form-group id="input-group-1" label="Nome:" label-for="nome">
                 <b-form-input
                     id="nome"
@@ -69,12 +69,16 @@
                 </b-input-group>
             </b-form-group>
 
-            <b-tooltip target="tooltip-target" triggers="hover">
+            <b-tooltip target="tooltip-target" variant="secondary" triggers="hover">
                 Selecione para marcar este telefone como o principal
             </b-tooltip>
 
-            <template v-if="errors.length">
-                <b-alert v-for="error in errors" :key="error" variant="danger" show>{{ error }}</b-alert>
+            <template v-if="fe_errors.length">
+                <b-alert v-for="error in fe_errors" :key="error" variant="danger" show>{{ error }}</b-alert>
+            </template>
+
+            <template>
+                <b-alert v-for="field in be_errors" :key="field[0]" variant="danger" show>Erro de servidor: {{ field[0] }}</b-alert>
             </template>
 
             <b-button type="submit" variant="primary">Submit</b-button>
@@ -103,7 +107,8 @@
                 telefones: [],
                 ntel: 1,
                 show: true,
-                errors: []
+                fe_errors: [],
+                be_errors: {}
             }
         },
         props: {
@@ -129,31 +134,48 @@
         name: "ProfessorForm",
         methods: {
             checkForm() {
-                this.errors = [];
+                this.fe_errors = [];
 
                 if (!this.form.nome)
-                    this.errors.push('O campo nome não pode estar vazio!');
+                    this.fe_errors.push('O campo nome não pode estar vazio!');
                 if (!isNaN(this.form.nome))
-                    this.errors.push('O campo nome não deve conter um número!');
+                    this.fe_errors.push('O campo nome não deve conter um número!');
                 if (!this.form.matricula)
-                    this.errors.push('O campo matrícula não pode estar vazio!');
+                    this.fe_errors.push('O campo matrícula não pode estar vazio!');
                 if (!this.form.email)
-                    this.errors.push('O campo email não pode estar vazio!');
+                    this.fe_errors.push('O campo email não pode estar vazio!');
                 if (!this.form.data_nasc)
-                    this.errors.push('O campo data de nascimento não pode estar vazio!');
+                    this.fe_errors.push('O campo data de nascimento não pode estar vazio!');
                 else if (new Date(this.form.data_nasc) >= new Date())
-                    this.errors.push('O campo data de nascimento não pode conter uma data no futuro!');
+                    this.fe_errors.push('O campo data de nascimento não pode conter uma data no futuro!');
                 else {
                     let date = new Date();
                     date.setFullYear(date.getFullYear() - 18);
                     if (new Date(this.form.data_nasc) > date)
-                        this.errors.push('O professor deve ter, no mínimo, 18 anos de idade!');
+                        this.fe_errors.push('O professor deve ter, no mínimo, 18 anos de idade!');
                 }
                 if (!this.etiquetas[this.selected] || !this.telefones[this.selected]) {
-                    this.errors.push('O campo com o telefone principal não pode estar vazio!');
+                    this.fe_errors.push('O campo com o telefone principal não pode estar vazio!');
                 }
 
-                return this.errors.length == 0;
+                for (let i = 0; i < this.ntel; ++i) {
+                    if ((this.etiquetas[i] && !this.telefones[i]) || (!this.etiquetas[i] && this.telefones[i])) {
+                        this.fe_errors.push('Tanto o campo etiqueta quando o campo telefone devem estar preenchidos!');
+                        break;
+                    }
+                    else if (this.telefones[i]) {
+                        if (this.telefones[i].length < 8) {
+                            this.fe_errors.push('Telefone muito pequeno!');
+                            break;
+                        }
+                        else if (this.telefones[i].length > 25) {
+                            this.fe_errors.push('Telefone muito grande!');
+                            break;
+                        }
+                    }
+                }
+
+                return this.fe_errors.length == 0;
             },
             // Exclui os campos de telefone vazios antes de enviar para o servidor
             validatePhonesFields() {
@@ -182,29 +204,34 @@
                 }
 
                 if (!this.professor) {
-                    axios.post('/api/professores', {professor: this.form}).then(({data}) => {
-                        console.log(data);
-                    }).catch(function (error) {
-                        if (error.response) {
-                            console.log(error.response.data);
-                            console.log(error.response.status);
-                            console.log(error.response.headers);
-                        };
-                    });
+                    axios.post('/api/professores', {
+                        email: this.form.email,
+                        nome: this.form.nome,
+                        matricula: this.form.matricula,
+                        data_nasc: this.form.data_nasc,
+                        telefones: this.form.telefones
+                    }).then(data => this.$router.push({path: '/professores'}))
+                    .catch(error => this.be_errors = (
+                        // A maneira correta de fazer esse tratamento seria criando uma Exception
+                        // com as mensagens desejadas
+                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outro professor com esta matricula"]}
+                    ));
                 }
                 else {
-                    axios.patch('/api/professores', {professor: this.form}).then(({data}) => {
-                        console.log(data);
-                    }).catch(function (error) {
-                        if (error.response) {
-                            console.log(error.response.data);
-                            console.log(error.response.status);
-                            console.log(error.response.headers);
-                        };
-                    });
+                    axios.patch('/api/professores', {
+                        id: this.form.id,
+                        email: this.form.email,
+                        nome: this.form.nome,
+                        matricula: this.form.matricula,
+                        data_nasc: this.form.data_nasc,
+                        telefones: this.form.telefones
+                    }).then(data => this.$router.push({path: '/professores'}))
+                    .catch(error => this.be_errors = (
+                        // A maneira correta de fazer esse tratamento seria criando uma Exception
+                        // com as mensagens desejadas
+                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outro professor com esta matricula"]}
+                    ));
                 }
-
-                this.$router.push({path: '/professores'});
             },
             onReset(evt) {
                 evt.preventDefault();

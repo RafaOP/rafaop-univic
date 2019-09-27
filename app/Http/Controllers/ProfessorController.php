@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class ProfessorController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Retorna uma lista com todos os professores.
      *
      * @return \Illuminate\Http\Response
      */
@@ -27,30 +27,36 @@ class ProfessorController extends Controller
         return $collection;
     }
 
+    /**
+     * Retorna um professor.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function getOne(Request $request)
     {
         return Professor::findOrFail(request('id'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Amazena um novo professor no banco de dados.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        $attributes = [
-            'nome' => request('professor.nome'),
-            'matricula' => request('professor.matricula'),
-            'data_nasc' => request('professor.data_nasc'),
-            'email' => request('professor.email')
-        ];
+        $attributes = request()->validate([
+            'nome' => ['required', 'max:255'],
+            'matricula' => ['required', 'max:255', 'unique:professors'],
+            'data_nasc' => ['required'],
+            'email' => ['required', 'min:5', 'max:255']
+        ]);
 
         $professor = new Professor($attributes);
         $professor->save();
 
-        $telefones = request('professor.telefones');
+        $telefones = request('telefones');
         foreach ($telefones as $tel)
             $professor->addTelefone($tel['principal'], $tel['etiqueta'], $tel['numero']);
     }
@@ -64,20 +70,23 @@ class ProfessorController extends Controller
      */
     public function update(Request $request)
     {
-        $attributes = [
-            'nome' => request('professor.nome'),
-            'matricula' => request('professor.matricula'),
-            'data_nasc' => request('professor.data_nasc'),
-            'email' => request('professor.email')
-        ];
+        $attributes = request()->validate([
+            'nome' => ['required', 'max:255'],
+            'matricula' => ['required', 'max:255'],
+            'data_nasc' => ['required'],
+            'email' => ['required', 'min:5', 'max:255']
+        ]);
 
-        $professor = Professor::findOrFail(request('professor.id'));
+        $professor = Professor::findOrFail(request('id'));
         $professor->update($attributes);
 
+        // Apaga todos os telefones do professor
         $telefones = DB::table('telefones')
                         ->where('professor_id', '=', $professor->id)
                         ->delete();
-        $telefones = request('professor.telefones');
+
+        // Adiciona novamente os telefones
+        $telefones = request('telefones');
         foreach($telefones as $tel)
             $professor->addTelefone($tel['principal'], $tel['etiqueta'], $tel['numero']);
     }

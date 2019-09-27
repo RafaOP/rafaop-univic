@@ -2014,6 +2014,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2026,7 +2030,8 @@ __webpack_require__.r(__webpack_exports__);
       },
       professores: [],
       selected: null,
-      errors: [],
+      fe_errors: [],
+      be_errors: {},
       show: true
     };
   },
@@ -2064,55 +2069,56 @@ __webpack_require__.r(__webpack_exports__);
   name: "DisciplinaForm",
   methods: {
     checkForm: function checkForm() {
-      if (!this.form.nome) this.errors.push('O campo nome não pode estar vazio!');
-      if (!this.form.sigla) this.errors.push('O campo sigla não pode estar vazio!');
-      if (!this.form.carga) this.errors.push('O campo carga horária não pode estar vazio!');else if (isNaN(this.form.carga)) this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');else if (this.form.carga < 0) this.errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
-      return this.errors.length == 0;
+      if (!this.form.nome) this.fe_errors.push('O campo nome não pode estar vazio!');
+      if (!this.form.sigla) this.fe_errors.push('O campo sigla não pode estar vazio!');
+      if (!this.form.carga) this.fe_errors.push('O campo carga horária não pode estar vazio!');else if (isNaN(this.form.carga)) this.fe_errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');else if (this.form.carga < 0) this.fe_errors.push('O campo carga horária deve ser um valor inteiro maior que zero!');
+      return this.fe_errors.length == 0;
     },
     onSubmit: function onSubmit(evt) {
+      var _this2 = this;
+
       evt.preventDefault();
       if (!this.checkForm()) return;
 
       if (!this.disciplina) {
-        console.log('CREATE');
         axios.post('/api/disciplinas', {
-          disciplina: this.form
-        }).then(function (_ref2) {
-          var data = _ref2.data;
-          console.log(data);
+          nome: this.form.nome,
+          sigla: this.form.sigla,
+          carga: this.form.carga,
+          professor_id: this.form.professor_id
+        }).then(function (data) {
+          return _this2.$router.push({
+            path: '/disciplinas'
+          });
         })["catch"](function (error) {
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          }
-
-          ;
+          return _this2.be_errors = // A maneira correta de fazer esse tratamento seria criando uma Exception
+          // com as mensagens desejadas
+          error.response.data.errors ? error.response.data.errors : {
+            msg: ["Já existe outra disciplina com esta sigla!"]
+          };
         });
       } else {
-        console.log('UPDATE');
         axios.patch('/api/disciplinas', {
-          disciplina: this.form
-        }).then(function (_ref3) {
-          var data = _ref3.data;
-          console.log(data);
+          id: this.form.id,
+          nome: this.form.nome,
+          sigla: this.form.sigla,
+          carga: this.form.carga,
+          professor_id: this.form.professor_id
+        }).then(function (data) {
+          return _this2.$router.push({
+            path: '/disciplinas'
+          });
         })["catch"](function (error) {
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          }
-
-          ;
+          return _this2.be_errors = // A maneira correta de fazer esse tratamento seria criando uma Exception
+          // com as mensagens desejadas
+          error.response.data.errors ? error.response.data.errors : {
+            msg: ["Já existe outra disciplina com esta sigla!"]
+          };
         });
       }
-
-      this.$router.push({
-        path: '/disciplinas'
-      });
     },
     onReset: function onReset(evt) {
-      var _this2 = this;
+      var _this3 = this;
 
       evt.preventDefault(); // Limpa os valores do form
 
@@ -2124,7 +2130,7 @@ __webpack_require__.r(__webpack_exports__);
 
       this.show = false;
       this.$nextTick(function () {
-        _this2.show = true;
+        _this3.show = true;
       });
     },
     selectProfessor: function selectProfessor(professor) {
@@ -2424,6 +2430,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -2440,7 +2450,8 @@ __webpack_require__.r(__webpack_exports__);
       telefones: [],
       ntel: 1,
       show: true,
-      errors: []
+      fe_errors: [],
+      be_errors: {}
     };
   },
   props: {
@@ -2466,22 +2477,37 @@ __webpack_require__.r(__webpack_exports__);
   name: "ProfessorForm",
   methods: {
     checkForm: function checkForm() {
-      this.errors = [];
-      if (!this.form.nome) this.errors.push('O campo nome não pode estar vazio!');
-      if (!isNaN(this.form.nome)) this.errors.push('O campo nome não deve conter um número!');
-      if (!this.form.matricula) this.errors.push('O campo matrícula não pode estar vazio!');
-      if (!this.form.email) this.errors.push('O campo email não pode estar vazio!');
-      if (!this.form.data_nasc) this.errors.push('O campo data de nascimento não pode estar vazio!');else if (new Date(this.form.data_nasc) >= new Date()) this.errors.push('O campo data de nascimento não pode conter uma data no futuro!');else {
+      this.fe_errors = [];
+      if (!this.form.nome) this.fe_errors.push('O campo nome não pode estar vazio!');
+      if (!isNaN(this.form.nome)) this.fe_errors.push('O campo nome não deve conter um número!');
+      if (!this.form.matricula) this.fe_errors.push('O campo matrícula não pode estar vazio!');
+      if (!this.form.email) this.fe_errors.push('O campo email não pode estar vazio!');
+      if (!this.form.data_nasc) this.fe_errors.push('O campo data de nascimento não pode estar vazio!');else if (new Date(this.form.data_nasc) >= new Date()) this.fe_errors.push('O campo data de nascimento não pode conter uma data no futuro!');else {
         var date = new Date();
         date.setFullYear(date.getFullYear() - 18);
-        if (new Date(this.form.data_nasc) > date) this.errors.push('O professor deve ter, no mínimo, 18 anos de idade!');
+        if (new Date(this.form.data_nasc) > date) this.fe_errors.push('O professor deve ter, no mínimo, 18 anos de idade!');
       }
 
       if (!this.etiquetas[this.selected] || !this.telefones[this.selected]) {
-        this.errors.push('O campo com o telefone principal não pode estar vazio!');
+        this.fe_errors.push('O campo com o telefone principal não pode estar vazio!');
       }
 
-      return this.errors.length == 0;
+      for (var i = 0; i < this.ntel; ++i) {
+        if (this.etiquetas[i] && !this.telefones[i] || !this.etiquetas[i] && this.telefones[i]) {
+          this.fe_errors.push('Tanto o campo etiqueta quando o campo telefone devem estar preenchidos!');
+          break;
+        } else if (this.telefones[i]) {
+          if (this.telefones[i].length < 8) {
+            this.fe_errors.push('Telefone muito pequeno!');
+            break;
+          } else if (this.telefones[i].length > 25) {
+            this.fe_errors.push('Telefone muito grande!');
+            break;
+          }
+        }
+      }
+
+      return this.fe_errors.length == 0;
     },
     // Exclui os campos de telefone vazios antes de enviar para o servidor
     validatePhonesFields: function validatePhonesFields() {
@@ -2496,6 +2522,8 @@ __webpack_require__.r(__webpack_exports__);
       }
     },
     onSubmit: function onSubmit(evt) {
+      var _this = this;
+
       evt.preventDefault();
       if (!this.checkForm()) return;
       this.validatePhonesFields();
@@ -2510,42 +2538,45 @@ __webpack_require__.r(__webpack_exports__);
 
       if (!this.professor) {
         axios.post('/api/professores', {
-          professor: this.form
-        }).then(function (_ref) {
-          var data = _ref.data;
-          console.log(data);
+          email: this.form.email,
+          nome: this.form.nome,
+          matricula: this.form.matricula,
+          data_nasc: this.form.data_nasc,
+          telefones: this.form.telefones
+        }).then(function (data) {
+          return _this.$router.push({
+            path: '/professores'
+          });
         })["catch"](function (error) {
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          }
-
-          ;
+          return _this.be_errors = // A maneira correta de fazer esse tratamento seria criando uma Exception
+          // com as mensagens desejadas
+          error.response.data.errors ? error.response.data.errors : {
+            msg: ["Já existe outro professor com esta matricula"]
+          };
         });
       } else {
         axios.patch('/api/professores', {
-          professor: this.form
-        }).then(function (_ref2) {
-          var data = _ref2.data;
-          console.log(data);
+          id: this.form.id,
+          email: this.form.email,
+          nome: this.form.nome,
+          matricula: this.form.matricula,
+          data_nasc: this.form.data_nasc,
+          telefones: this.form.telefones
+        }).then(function (data) {
+          return _this.$router.push({
+            path: '/professores'
+          });
         })["catch"](function (error) {
-          if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
-          }
-
-          ;
+          return _this.be_errors = // A maneira correta de fazer esse tratamento seria criando uma Exception
+          // com as mensagens desejadas
+          error.response.data.errors ? error.response.data.errors : {
+            msg: ["Já existe outro professor com esta matricula"]
+          };
         });
       }
-
-      this.$router.push({
-        path: '/professores'
-      });
     },
     onReset: function onReset(evt) {
-      var _this = this;
+      var _this2 = this;
 
       evt.preventDefault(); // Limpa os valores do form
 
@@ -2559,7 +2590,7 @@ __webpack_require__.r(__webpack_exports__);
 
       this.show = false;
       this.$nextTick(function () {
-        _this.show = true;
+        _this2.show = true;
       });
     },
     addTelefone: function addTelefone() {
@@ -52457,7 +52488,8 @@ var render = function() {
                 submit: _vm.onSubmit,
                 reset: _vm.onReset,
                 keydown: function($event) {
-                  _vm.errors = []
+                  _vm.fe_errors = []
+                  _vm.be_errors = {}
                 }
               }
             },
@@ -52610,8 +52642,8 @@ var render = function() {
                 1
               ),
               _vm._v(" "),
-              _vm.errors.length
-                ? _vm._l(_vm.errors, function(error) {
+              _vm.fe_errors.length
+                ? _vm._l(_vm.fe_errors, function(error) {
                     return _c(
                       "b-alert",
                       { key: error, attrs: { variant: "danger", show: "" } },
@@ -52619,6 +52651,14 @@ var render = function() {
                     )
                   })
                 : _vm._e(),
+              _vm._v(" "),
+              _vm._l(_vm.be_errors, function(field) {
+                return _c(
+                  "b-alert",
+                  { key: field[0], attrs: { variant: "danger", show: "" } },
+                  [_vm._v("Erro de servidor: " + _vm._s(field[0]))]
+                )
+              }),
               _vm._v(" "),
               _c(
                 "b-button",
@@ -52727,7 +52767,7 @@ var staticRenderFns = [
           _c("div", { staticClass: "card card-default" }, [
             _c("div", { staticClass: "card-header" }, [
               _c("b", [
-                _vm._v("Univiçosa - 1ª Etapa - Teste Prático - Edital 17/2019")
+                _vm._v("Univiçosa - 3ª Etapa - Teste Prático - Edital 17/2019")
               ])
             ]),
             _vm._v(" "),
@@ -52982,7 +53022,8 @@ var render = function() {
                 submit: _vm.onSubmit,
                 reset: _vm.onReset,
                 keydown: function($event) {
-                  _vm.errors = []
+                  _vm.fe_errors = []
+                  _vm.be_errors = {}
                 }
               }
             },
@@ -53232,7 +53273,13 @@ var render = function() {
               _vm._v(" "),
               _c(
                 "b-tooltip",
-                { attrs: { target: "tooltip-target", triggers: "hover" } },
+                {
+                  attrs: {
+                    target: "tooltip-target",
+                    variant: "secondary",
+                    triggers: "hover"
+                  }
+                },
                 [
                   _vm._v(
                     "\n            Selecione para marcar este telefone como o principal\n        "
@@ -53240,8 +53287,8 @@ var render = function() {
                 ]
               ),
               _vm._v(" "),
-              _vm.errors.length
-                ? _vm._l(_vm.errors, function(error) {
+              _vm.fe_errors.length
+                ? _vm._l(_vm.fe_errors, function(error) {
                     return _c(
                       "b-alert",
                       { key: error, attrs: { variant: "danger", show: "" } },
@@ -53249,6 +53296,14 @@ var render = function() {
                     )
                   })
                 : _vm._e(),
+              _vm._v(" "),
+              _vm._l(_vm.be_errors, function(field) {
+                return _c(
+                  "b-alert",
+                  { key: field[0], attrs: { variant: "danger", show: "" } },
+                  [_vm._v("Erro de servidor: " + _vm._s(field[0]))]
+                )
+              }),
               _vm._v(" "),
               _c(
                 "b-button",
