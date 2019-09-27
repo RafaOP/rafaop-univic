@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Professor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Validator;
+use Illuminate\Http\Response;
 
 class ProfessorController extends Controller
 {
@@ -50,7 +52,7 @@ class ProfessorController extends Controller
             'nome' => ['required', 'max:255'],
             'matricula' => ['required', 'max:255', 'unique:professors'],
             'data_nasc' => ['required'],
-            'email' => ['required', 'min:5', 'max:255']
+            'email' => ['required', 'min:5', 'max:255', 'unique:professors']
         ]);
 
         $professor = new Professor($attributes);

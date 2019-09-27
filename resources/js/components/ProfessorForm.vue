@@ -214,7 +214,7 @@
                     .catch(error => this.be_errors = (
                         // A maneira correta de fazer esse tratamento seria criando uma Exception
                         // com as mensagens desejadas
-                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outro professor com esta matricula"]}
+                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outro professor com esta matricula ou email!"]}
                     ));
                 }
                 else {
@@ -229,7 +229,7 @@
                     .catch(error => this.be_errors = (
                         // A maneira correta de fazer esse tratamento seria criando uma Exception
                         // com as mensagens desejadas
-                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outro professor com esta matricula"]}
+                        error.response.data.errors ? error.response.data.errors : {msg: ["Já existe outro professor com esta matricula ou email!"]}
                     ));
                 }
             },

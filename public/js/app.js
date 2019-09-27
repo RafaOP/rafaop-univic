@@ -2551,7 +2551,7 @@ __webpack_require__.r(__webpack_exports__);
           return _this.be_errors = // A maneira correta de fazer esse tratamento seria criando uma Exception
           // com as mensagens desejadas
           error.response.data.errors ? error.response.data.errors : {
-            msg: ["Já existe outro professor com esta matricula"]
+            msg: ["Já existe outro professor com esta matricula ou email!"]
           };
         });
       } else {
@@ -2570,7 +2570,7 @@ __webpack_require__.r(__webpack_exports__);
           return _this.be_errors = // A maneira correta de fazer esse tratamento seria criando uma Exception
           // com as mensagens desejadas
           error.response.data.errors ? error.response.data.errors : {
-            msg: ["Já existe outro professor com esta matricula"]
+            msg: ["Já existe outro professor com esta matricula ou email!"]
           };
         });
       }
@@ -52773,7 +52773,7 @@ var staticRenderFns = [
             _vm._v(" "),
             _c("div", { staticClass: "card-body" }, [
               _vm._v(
-                "\n                    Projeto prático desenvolvido para o processo seletivo para vaga de Desenvolvedor Web!\n                "
+                "\n                    Projeto prático desenvolvido para o processo seletivo para vaga de Desenvolvedor Web\n                "
               )
             ])
           ])

@@ -46,7 +46,7 @@ class DisciplinaController extends Controller
             'nome' => ['required', 'max:255'],
             'sigla' => ['required', 'max:255', 'unique:disciplinas'],
             'carga' => ['required'],
-            'professor_id' => []
+            'professor_id' => ['nullable']
         ]);
 
         Disciplina::create($attributes);
